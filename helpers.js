@@ -5,23 +5,24 @@ var printErrors = function (errors, duration) {
       p = document.getElementsByTagName("p")[0],
       errorsLength = errors.length;
   ol.textContent = "";
-  if(errorsLength > 0) {
-    if(errorsLength === 1) {
+
+  if (errorsLength > 0) {
+    if (errorsLength === 1) {
       p.textContent = "Almost there!";
     }
-    else if(errorsLength < 5) {
+    else if (errorsLength < 5) {
       p.textContent = "Just fix these mistakes my man.";
     }
     else {
       p.textContent = "You are hopeless, RTFS.";
     }
 
-    for(var i = 0; i < errorsLength; i++) {
+    for (var i = 0; i < errorsLength; i++) {
       var error = errors[i],
           message = "Line " + error.line,
           li = document.createElement("li"),
           column = error.col;
-      if(column) {
+      if (column) {
         message += ", column " + column;
       }
 

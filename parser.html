@@ -2,65 +2,67 @@
 <!doctype html>
 <html>
 <head>
-	<style>
-	 body { font:80% Helvetica Neue, sans-serif }
-	 h1 { font-size:1.2em }
-	 textarea { width:100%; height:30em }
-	 .copyright { font-size:.8em; color:gray }
-	 .video_viewport { width: 360px; height: 240px; background-color: yellow; margin: 5px;}
-	</style>
-	<script src="helpers.js"></script>
-	<script src="parser.js"></script>
-	<script src="serialize.js"></script>
-	<script src="dom_construction.js"></script>
-	<script>
-	test = function() {
-		var video_viewport = [], output = [];
-		var parser, parsedData, dom;
+  <style>
+   body { font:80% Helvetica Neue, sans-serif }
+   h1 { font-size:1.2em }
+   textarea { width:100%; height:30em }
+   .copyright { font-size:.8em; color:gray }
+   .video_viewport { width: 360px; height: 240px; background-color: yellow; margin: 5px;}
+  </style>
+  <script src="helpers.js"></script>
+  <script src="parser.js"></script>
+  <script src="serialize.js"></script>
+  <script src="dom_construction.js"></script>
+  <script>
+  "use strict";
 
-		// parse textarea
-		parser = new WebVTTParser();
-		parsedData = parser.parse(document.getElementsByTagName("textarea")[0].value);
+  var test = function() {
+    var video_viewport = [], output = [];
+    var parser, parsedData, dom;
 
-		// print errors and WebVTT file as parsed
-		if (parsedData.errors.length > 0) {
-			printErrors(parsedData.errors, parsedData.time);
-		}
-		printWebVTTFile(parsedData);
+    // parse textarea
+    parser = new WebVTTParser();
+    parsedData = parser.parse(document.getElementsByTagName("textarea")[0].value);
 
-		// assume video dimensions
-		var videoWidth = 360;
-		var videoHeight = 240;
+    // print errors and WebVTT file as parsed
+    if (parsedData.errors.length > 0) {
+      printErrors(parsedData.errors, parsedData.time);
+    }
+    printWebVTTFile(parsedData);
 
-		// paint every cue into a "screenshot"
-		var screenshots = document.getElementById("screenshots");
-		// make sure we can still do live painting updates
-		// so each call to the test function needs to start without screenshots
-		while (screenshots.hasChildNodes()) {
-		    screenshots.removeChild(screenshots.lastChild);
-		}
+    // assume video dimensions
+    var videoWidth = 360;
+    var videoHeight = 240;
 
-		// add a video viewport & per cue to the screenshots div
-		for (var i = 0; i < parsedData.cues.length; i++) {
-			video_viewport[i] = document.createElement("div");
-			video_viewport[i].style.position = 'relative';
-			video_viewport[i].style.overflow = 'hidden';
-		  	video_viewport[i].setAttribute("class", "video_viewport");
-		  	screenshots.appendChild(video_viewport[i]);
-		}
+    // paint every cue into a "screenshot"
+    var screenshots = document.getElementById("screenshots");
+    // make sure we can still do live painting updates
+    // so each call to the test function needs to start without screenshots
+    while (screenshots.hasChildNodes()) {
+        screenshots.removeChild(screenshots.lastChild);
+    }
 
-		// calculate the document fragments and their styling for each cue
-		// & append into viewports
-		dom = new WebVTT2DocumentFragment(screenshots);
-		for (i = 0; i < parsedData.cues.length; i++) {
-			output = dom.cue2DOMFragment(parsedData.cues[i], videoWidth, videoHeight, video_viewport[i]);
-	        p = document.createElement("p");
-	        p.textContent = "Cue from " + output.startTime + " to " + output.endTime;
-	        screenshots.insertBefore(p, video_viewport[i]);
-		  	video_viewport[i].appendChild(output.domFragment);
-		}
-	}
-	</script>
+    // add a video viewport & per cue to the screenshots div
+    for (var i = 0; i < parsedData.cues.length; i++) {
+      video_viewport[i] = document.createElement("div");
+      video_viewport[i].style.position = 'relative';
+      video_viewport[i].style.overflow = 'hidden';
+        video_viewport[i].setAttribute("class", "video_viewport");
+        screenshots.appendChild(video_viewport[i]);
+    }
+
+    // calculate the document fragments and their styling for each cue
+    // & append into viewports
+    dom = new WebVTT2DocumentFragment(screenshots);
+    for (i = 0; i < parsedData.cues.length; i++) {
+      output = dom.cue2DOMFragment(parsedData.cues[i], videoWidth, videoHeight, video_viewport[i]);
+          p = document.createElement("p");
+          p.textContent = "Cue from " + output.startTime + " to " + output.endTime;
+          screenshots.insertBefore(p, video_viewport[i]);
+        video_viewport[i].appendChild(output.domFragment);
+    }
+  }
+  </script>
 </head>
 <body onload="test()">
 <title>Live WebVTT Validator</title>
