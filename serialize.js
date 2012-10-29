@@ -109,9 +109,10 @@ var WebVTTSerializer = function() {
   that.serialize = function(cues, metadatas) {
     var result = "WEBVTT\n",
         cueLength = cues.length,
-        metadataLength = metadatas.length;
+        metadataLength = metadatas.length,
+        i=0;
 
-    for(var i=0; i<metadataLength; i++) {
+    for(i=0; i<metadataLength; i++) {
       if (metadatas[i].name === "Region") {
         result += metadatas[i].name + ":" + serializeRegion(metadatas[i].regionAttributes) + "\n";
       } else {
@@ -120,7 +121,7 @@ var WebVTTSerializer = function() {
     }
     result += "\n";
 
-    for(var i=0; i<cueLength; i++) {
+    for(i=0; i<cueLength; i++) {
       result += serializeCue(cues[i]);
     }
     return result;

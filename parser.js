@@ -43,7 +43,6 @@ var WebVTTParser = function() {
     line = lines[++linePos];
 
     /* HEADER LOOP */
-    var endHeader = 0;
     while(line !== undefined) {
       /* look-ahead */
       if (line === "") {
@@ -61,11 +60,11 @@ var WebVTTParser = function() {
       metadatas.push(metadata);
 
       line = lines[++linePos];
-    };
+    }
 
     /* CUE LOOP */
     while(line !== undefined) {
-      var cue, time;
+      var cue;
       while(!alreadyCollected && line === "") {
         line = lines[++linePos];
       }
@@ -183,8 +182,6 @@ var WebVTTMetadataParser = function(errorHandler) {
 
   /* NAME - VALUE CREATION */
   that.parse = function(line) {
-    var seen = [];
-
     var metadata = {
        name:"",
        value:"",
@@ -206,6 +203,7 @@ var WebVTTMetadataParser = function(errorHandler) {
     /* parse region attributes */
     var attributes = value.split(SPACE),
       attributesLength = attributes.length,
+      anchorIndex, anchorX, anchorY, lastAnchorX, lastAnchorY,
       seen = [];
 
     var regionAttributes = {
@@ -265,7 +263,7 @@ var WebVTTMetadataParser = function(errorHandler) {
         regionAttributes.height = parseInt(attributeValue, 10);
 
       } else if (attribute === "anchorpoint") { // anchorpoint
-        var anchorIndex = attributeValue.indexOf(','),
+        anchorIndex = attributeValue.indexOf(','),
           anchorX = attributeValue.slice(0, anchorIndex),
           anchorY = attributeValue.slice(anchorIndex + 1),
           lastAnchorX = anchorX.length - 1,
@@ -289,7 +287,7 @@ var WebVTTMetadataParser = function(errorHandler) {
         }
 
       } else if (attribute === "anchorposition") { // anchorposition
-        var anchorIndex = attributeValue.indexOf(','),
+        anchorIndex = attributeValue.indexOf(','),
           anchorX = attributeValue.slice(0, anchorIndex),
           anchorY = attributeValue.slice(anchorIndex + 1),
           lastAnchorX = anchorX.length - 1,
@@ -517,7 +515,7 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
             }
             cue.size = parseInt(value, 10);
           } else if (setting === "align") { // alignment
-            if (value !== "start" && value !== "middle" && value !== "end" && value != "left" && value != "right") {
+            if (value !== "start" && value !== "middle" && value !== "end" && value !== "left" && value !== "right") {
               err("Alignment can only be set to 'start', 'middle', 'end', 'left' or 'right'.");
               continue;
             }
@@ -532,8 +530,8 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
           }
         }
         if (
-            (seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1)
-            && seen.indexOf("region") !== -1
+            (seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) &&
+            seen.indexOf("region") !== -1
           ) {
             err("Ignoring region setting.");
             cue.region = "";

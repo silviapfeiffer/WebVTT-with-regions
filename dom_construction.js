@@ -2,7 +2,7 @@
 
 var EDGEMARGIN = 2; /* % */
 
-var WebVTT2DocumentFragment = function(element) {
+var WebVTT2DocumentFragment = function() {
   var that = this,
   
   /* construct DOM tree out of cue content */
@@ -22,7 +22,9 @@ var WebVTT2DocumentFragment = function(element) {
               result += " class='";
               var nodeClassesLength = nodeClasses.length;
               for (var y = 0; y < nodeClassesLength; y++) {
-                if (y > 0) result += ' ';
+                if (y > 0) {
+                  result += ' ';
+                }
                 result += nodeClasses[y];
               }
               result += "'";
@@ -47,7 +49,7 @@ var WebVTT2DocumentFragment = function(element) {
         } else {
             result += "</" + node.name + ">";
         }
-      } else if (nodeType == "timestamp"){
+      } else if (nodeType === "timestamp"){
         result += "<?timestamp " + printTimestamp(node.value) + " ?>";
       }
     }
@@ -99,10 +101,10 @@ var WebVTT2DocumentFragment = function(element) {
       result += " unicode-bidi:-webkit-plaintext; unicode-bidi:-moz-plaintext; unicode-bidi:plaintext;";
       result += " direction:ltr;";
       result += " background:rgba(0,0,0,0.8);";
-      result += " word-wrap:break-word; overflow-wrap:break-word;"
+      result += " word-wrap:break-word; overflow-wrap:break-word;";
       result += " font: " + fontSize + "px sans-serif;";
       result += " line-height:" + lineHeight + "px;";
-      result += " color: rgba(255, 255, 255, 1);"
+      result += " color: rgba(255, 255, 255, 1);";
       
       if (cue.direction === "lr") {
           result += " writing-mode:vertical-lr;-webkit-writing-mode:vertical-lr;";
@@ -173,7 +175,7 @@ var WebVTT2DocumentFragment = function(element) {
       result += " width:" + width + "px;";
 
       height = 'auto';
-      result += " height:auto;"
+      result += " height:auto;";
 
       top = yposition  * videoHeight/100.0;
 

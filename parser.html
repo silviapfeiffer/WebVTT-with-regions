@@ -14,11 +14,11 @@
   <script src="serialize.js"></script>
   <script src="dom_construction.js"></script>
   <script>
-  "use strict";
-
   var test = function() {
+    "use strict";
+
     var video_viewport = [], output = [];
-    var parser, parsedData, dom;
+    var parser, parsedData, dom, p;
 
     // parse textarea
     parser = new WebVTTParser();
@@ -53,7 +53,7 @@
 
     // calculate the document fragments and their styling for each cue
     // & append into viewports
-    dom = new WebVTT2DocumentFragment(screenshots);
+    dom = new WebVTT2DocumentFragment();
     for (i = 0; i < parsedData.cues.length; i++) {
       output = dom.cue2DOMFragment(parsedData.cues[i], videoWidth, videoHeight, video_viewport[i]);
           p = document.createElement("p");
@@ -61,7 +61,7 @@
           screenshots.insertBefore(p, video_viewport[i]);
         video_viewport[i].appendChild(output.domFragment);
     }
-  }
+  };
   </script>
 </head>
 <body onload="test()">
