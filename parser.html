@@ -37,7 +37,7 @@
     // make sure we can still do live painting updates
     // so each call to the test function needs to start without screenshots
     while (screenshots.hasChildNodes()) {
-        screenshots.removeChild(screenshots.lastChild);
+      screenshots.removeChild(screenshots.lastChild);
     }
 
     // add a video viewport & per cue to the screenshots div
@@ -45,8 +45,8 @@
       video_viewport[i] = document.createElement("div");
       video_viewport[i].style.position = 'relative';
       video_viewport[i].style.overflow = 'hidden';
-        video_viewport[i].setAttribute("class", "video_viewport");
-        screenshots.appendChild(video_viewport[i]);
+      video_viewport[i].setAttribute("class", "video_viewport");
+      screenshots.appendChild(video_viewport[i]);
     }
 
     // calculate the document fragments and their styling for each cue
@@ -54,10 +54,10 @@
     dom = new WebVTT2DocumentFragment();
     for (i = 0; i < parsedData.cues.length; i++) {
       output = dom.cue2DOMFragment(parsedData.cues[i], videoWidth, videoHeight, video_viewport[i]);
-          p = document.createElement("p");
-          p.textContent = "Cue from " + output.startTime + " to " + output.endTime;
-          screenshots.insertBefore(p, video_viewport[i]);
-        video_viewport[i].appendChild(output.domFragment);
+      p = document.createElement("p");
+      p.textContent = "Cue from " + output.startTime + " to " + output.endTime;
+      screenshots.insertBefore(p, video_viewport[i]);
+      video_viewport[i].appendChild(output.domFragment);
     }
   };
   </script>

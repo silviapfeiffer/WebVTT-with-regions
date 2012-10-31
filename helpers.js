@@ -2,9 +2,9 @@
 
 var printErrors = function (errors, duration) {
   var ol = document.getElementsByTagName("ol")[0],
-      p = document.getElementsByTagName("p")[0],
-      errorsLength = errors.length;
-  ol.textContent = "";
+    p = document.getElementsByTagName("p")[0],
+    errorsLength = errors.length;
+    ol.textContent = "";
 
   if (errorsLength > 0) {
     if (errorsLength === 1) {
@@ -19,9 +19,9 @@ var printErrors = function (errors, duration) {
 
     for (var i = 0; i < errorsLength; i++) {
       var error = errors[i],
-          message = "Line " + error.line,
-          li = document.createElement("li"),
-          column = error.col;
+      message = "Line " + error.line,
+      li = document.createElement("li"),
+      column = error.col;
       if (column) {
         message += ", column " + column;
       }
@@ -43,9 +43,9 @@ var printWebVTTFile = function (r) {
 
 var toTimestamp = function (timestamp) {
   var seconds = 0,
-    secondsFrac = 0,
-    minutes = 0,
-    hours = 0;
+  secondsFrac = 0,
+  minutes = 0,
+  hours = 0;
 
   secondsFrac = (timestamp%1).toFixed(3)*1000;
   seconds = Math.floor(timestamp);
@@ -67,7 +67,7 @@ var toTimestamp = function (timestamp) {
 
 var printTimestamp = function (timestamp) {
   var components = toTimestamp(parseFloat(timestamp)),
-    result = "";
+  result = "";
   if (components.hours > 0) {
     if (components.hours < 10) {
       result += "0";

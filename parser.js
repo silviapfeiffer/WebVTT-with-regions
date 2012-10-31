@@ -7,35 +7,35 @@
 
 var WebVTTParser = function() {
   var that = this;
-  
+
   that.parse = function(input) {
     //XXX need global search and replace for \0
     //XXX skyp byte order mark
     var NEWLINE = /\r\n|\r|\n/,
-        startTime = Date.now(),
-        linePos = 0,
-        lines = input.split(NEWLINE),
-        alreadyCollected = false,
-        cues = [],
-        metadatas = [],
-        errors = [],
-        err = function (message, col) {
-            errors.push({
-              message:message,
-              line:linePos+1,
-              col:col
-            });
-        };
+    startTime = Date.now(),
+    linePos = 0,
+    lines = input.split(NEWLINE),
+    alreadyCollected = false,
+    cues = [],
+    metadatas = [],
+    errors = [],
+    err = function (message, col) {
+      errors.push({
+        message:message,
+        line:linePos+1,
+        col:col
+      });
+    };
 
     var line = lines[linePos],
-        lineLength = line.length;
+    lineLength = line.length;
     /* SIGNATURE */
     if (
       lineLength < 6 ||
       line.indexOf("WEBVTT") !== 0 ||
       lineLength > 6 &&
-        line[6] !== " " &&
-        line[6] !== "\t"
+      line[6] !== " " &&
+      line[6] !== "\t"
     ) {
       err("No valid signature. (File needs to start with \"WEBVTT\".)");
     }
@@ -47,7 +47,7 @@ var WebVTTParser = function() {
       /* look-ahead */
       if (line === "") {
         if ((lines[linePos+1] && lines[linePos+1].indexOf("-->") !== -1 )||
-            (lines[linePos+2] && lines[linePos+2].indexOf("-->") !== -1)) {
+        (lines[linePos+2] && lines[linePos+2].indexOf("-->") !== -1)) {
           break;
         }
       }
@@ -103,8 +103,8 @@ var WebVTTParser = function() {
       /* TIMINGS */
       alreadyCollected = false;
       var timings = new WebVTTCueTimingsAndSettingsParser(line, err),
-          previousCueStart = 0;
-       if (cues.length > 0) {
+      previousCueStart = 0;
+      if (cues.length > 0) {
         previousCueStart = cues[cues.length-1].startTime;
       }
       if (!timings.parse(cue, previousCueStart)) {
@@ -167,24 +167,24 @@ var WebVTTParser = function() {
       time:Date.now()-startTime
     };
   };
-  
+
   return that;
 };
 
 var WebVTTMetadataParser = function(errorHandler) {
   var that = this,
-    SPACE = /[\u0020\t\f]/,
-    pos = 0,
-    err = function(message) {
-      errorHandler(message, pos+1);
-    };
+  SPACE = /[\u0020\t\f]/,
+  pos = 0,
+  err = function(message) {
+    errorHandler(message, pos+1);
+  };
 
   /* NAME - VALUE CREATION */
   that.parse = function(line) {
     var metadata = {
-       name:"",
-       value:"",
-       regionAttributes:null
+      name:"",
+      value:"",
+      regionAttributes:null
     };
 
     if (line.indexOf(':') !== -1) {
@@ -201,9 +201,9 @@ var WebVTTMetadataParser = function(errorHandler) {
   that.parseRegion = function(value) {
     /* parse region attributes */
     var attributes = value.split(SPACE),
-      attributesLength = attributes.length,
-      anchorIndex, anchorX, anchorY, lastAnchorX, lastAnchorY,
-      seen = [];
+    attributesLength = attributes.length,
+    anchorIndex, anchorX, anchorY, lastAnchorX, lastAnchorY,
+    seen = [];
 
     var regionAttributes = {
       id:"",
@@ -216,17 +216,17 @@ var WebVTTMetadataParser = function(errorHandler) {
       scroll:""                
     };
 
-    for(var i=0; i < attributesLength; i++) {
+    for (var i=0; i < attributesLength; i++) {
       var attributeElement = attributes[i];
-  
+
       if (attributeElement === "") {
         continue;
       }    
 
       var index = attributeElement.indexOf('='),
-        attribute = attributeElement.slice(0, index),
-        attributeValue = attributeElement.slice(index + 1),
-        lastValueIndex = attributeValue.length - 1;
+      attribute = attributeElement.slice(0, index),
+      attributeValue = attributeElement.slice(index + 1),
+      lastValueIndex = attributeValue.length - 1;
 
 
       if (seen.indexOf(attribute) !== -1) {
@@ -239,84 +239,94 @@ var WebVTTMetadataParser = function(errorHandler) {
         continue;
       }
 
-      if (attribute === "id") { // id
-        regionAttributes.id = attributeValue;
+      switch (attribute) {
+        case ("id"): // id
+          regionAttributes.id = attributeValue;
+          break;
 
-      } else if (attribute === "width") { // width
-        if (attributeValue[lastValueIndex] !== "%") {
-          err("Region width must be a percentage.");
-          continue;
-        }
-        regionAttributes.width = parseInt(attributeValue, 10);
-        if (regionAttributes.width > 100 || regionAttributes.width < 0) {
-          err("Region width has to be between 0 and 100.");
-          regionAttributes.width = 100;
-          continue;
-        }
+        case ("width"): // width
+          if (attributeValue[lastValueIndex] !== "%") {
+            err("Region width must be a percentage.");
+            continue;
+          }
+          regionAttributes.width = parseInt(attributeValue, 10);
+          if (regionAttributes.width > 100 || regionAttributes.width < 0) {
+            err("Region width has to be between 0 and 100.");
+            regionAttributes.width = 100;
+            continue;
+          }
+          break;
 
-      } else if (attribute === "height") { // height
-        if (attributeValue[lastValueIndex] === "%") {
-          err("Region height cannot be a percentage.");
-          continue;
-        }
-        regionAttributes.height = parseInt(attributeValue, 10);
+        case ("height"): // height
+          if (attributeValue[lastValueIndex] === "%") {
+            err("Region height cannot be a percentage.");
+            continue;
+          }
+          regionAttributes.height = parseInt(attributeValue, 10);
+          break;
 
-      } else if (attribute === "anchorpoint") { // anchorpoint
-        anchorIndex = attributeValue.indexOf(','),
+        case ("anchorpoint"): // anchorpoint
+          anchorIndex = attributeValue.indexOf(','),
           anchorX = attributeValue.slice(0, anchorIndex),
           anchorY = attributeValue.slice(anchorIndex + 1),
           lastAnchorX = anchorX.length - 1,
           lastAnchorY = anchorY.length - 1;
-        if (anchorX[lastAnchorX] !== "%" || anchorY[lastAnchorY] !== "%") {
-          err("Region anchor points have to be a percentage.");
-          continue;
-        }
-        regionAttributes.anchorX = parseInt(anchorX, 10);
-        if (regionAttributes.anchorX > 100 || regionAttributes.anchorX < 0) {
-          err("Region anchor point X has to be between 0 and 100.");
-          regionAttributes.anchorX = 0;
-          continue;
-        }
-        regionAttributes.anchorY = parseInt(anchorY, 10);
-        if (regionAttributes.anchorY > 100 || regionAttributes.anchorY < 0) {
-          err("Region anchor point Y has to be between 0 and 100.");
-          regionAttributes.anchorX = 0;          
-          regionAttributes.anchorY = 100;
-          continue;
-        }
+          if (anchorX[lastAnchorX] !== "%" || anchorY[lastAnchorY] !== "%") {
+            err("Region anchor points have to be a percentage.");
+            continue;
+          }
+          regionAttributes.anchorX = parseInt(anchorX, 10);
+          if (regionAttributes.anchorX > 100 || regionAttributes.anchorX < 0) {
+            err("Region anchor point X has to be between 0 and 100.");
+            regionAttributes.anchorX = 0;
+            continue;
+          }
+          regionAttributes.anchorY = parseInt(anchorY, 10);
+          if (regionAttributes.anchorY > 100 || regionAttributes.anchorY < 0) {
+            err("Region anchor point Y has to be between 0 and 100.");
+            regionAttributes.anchorX = 0;
+            regionAttributes.anchorY = 100;
+            continue;
+          }
+          break;
 
-      } else if (attribute === "anchorposition") { // anchorposition
-        anchorIndex = attributeValue.indexOf(','),
+        case ("anchorposition"): // anchorposition
+          anchorIndex = attributeValue.indexOf(','),
           anchorX = attributeValue.slice(0, anchorIndex),
           anchorY = attributeValue.slice(anchorIndex + 1),
           lastAnchorX = anchorX.length - 1,
           lastAnchorY = anchorY.length - 1;
-        if (anchorX[lastAnchorX] !== "%" || anchorY[lastAnchorY] !== "%") {
-          err("Region anchor positions have to be a percentage.");
-          continue;
-        }
-        regionAttributes.anchorPositionX = parseInt(anchorX, 10);
-        if (regionAttributes.anchorX > 100 || regionAttributes.anchorX < 0) {
-          err("Region anchor position X has to be between 0 and 100.");
-          regionAttributes.anchorPositionX = 0;
-          continue;
-        }
-        regionAttributes.anchorPositionY = parseInt(anchorY, 10);
-        if (regionAttributes.anchorY > 100 || regionAttributes.anchorY < 0) {
-          err("Region anchor position Y has to be between 0 and 100.");
-          regionAttributes.anchorPositionX = 0;          
-          regionAttributes.anchorPositionY = 100;
-          continue;
-        }
+          if (anchorX[lastAnchorX] !== "%" || anchorY[lastAnchorY] !== "%") {
+            err("Region anchor positions have to be a percentage.");
+            continue;
+          }
+          regionAttributes.anchorPositionX = parseInt(anchorX, 10);
+          if (regionAttributes.anchorX > 100 || regionAttributes.anchorX < 0) {
+            err("Region anchor position X has to be between 0 and 100.");
+            regionAttributes.anchorPositionX = 0;
+            continue;
+          }
+          regionAttributes.anchorPositionY = parseInt(anchorY, 10);
+          if (regionAttributes.anchorY > 100 || regionAttributes.anchorY < 0) {
+            err("Region anchor position Y has to be between 0 and 100.");
+            regionAttributes.anchorPositionX = 0;
+            regionAttributes.anchorPositionY = 100;
+            continue;
+          }
+          break;
 
-      } else if (attribute === "scroll") { // scroll
-        if (attributeValue !== "up") {
-          err("Region scroll can only be up.");
-          continue;
-        }
-        regionAttributes.scroll = attributeValue;
+        case ("scroll"): // scroll
+          if (attributeValue !== "up") {
+            err("Region scroll can only be up.");
+            continue;
+          }
+          regionAttributes.scroll = attributeValue;
+          break;
+
+        default:
+          err("Invalid region attribute:" + attribute);
       }
-    }
+    } // end for
 
     /* region has to have an id */
     if (seen.indexOf("id") === -1) {
@@ -331,233 +341,232 @@ var WebVTTMetadataParser = function(errorHandler) {
 
 var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
   var that = this,
-      SPACE = /[\u0020\t\f]/,
-      NOSPACE = /[^\u0020\t\f]/,
-      pos = 0,
-      err = function(message) {
-        errorHandler(message, pos+1);
-      },
-      spaceBeforeSetting = true,
-      
-      skip = function (pattern) {
-        while(
-          line[pos] !== undefined &&
-          pattern.test(line[pos])
-        ) {
-          pos++;
-        }
-      },
-      
-      collect = function (pattern) {
-        var str = "";
-        while(
-          line[pos] !== undefined &&
-          pattern.test(line[pos])
-        ) {
-          str += line[pos];
-          pos++;
-        }
-        return str;
-      },
-      
-      /* http://dev.w3.org/html5/webvtt/#collect-a-webvtt-timestamp */
-      timestamp = function () {
-        var units = "minutes",
-            val1,
-            val2,
-            val3,
-            val4;
-        // 3
-        if (line[pos] === undefined) {
-          err("No timestamp found.");
-          return;
-        }
-        // 4
-        if (!/\d/.test(line[pos])) {
-          err("Timestamp must start with a character in the range 0-9.");
-          return;
-        }
-        // 5-7
-        val1 = collect(/\d/);
-        if (val1.length > 2 || parseInt(val1, 10) > 59) {
-          units = "hours";
-        }
-        // 8
-        if (line[pos] !== ":") {
-          err("No time unit separator found.");
-          return;
-        }
-        pos++;
-        // 9-11
-        val2 = collect(/\d/);
-        if (val2.length !== 2) {
-          err("Must be exactly two digits.");
-          return;
-        }
-        // 12
-        if (units === "hours" || line[pos] === ":") {
-          if (line[pos] !== ":") {
-            err("No seconds found or minutes is greater than 59.");
-            return;
-          }
-          pos++;
-          val3 = collect(/\d/);
-          if (val3.length !== 2) {
-            err("Must be exactly two digits.");
-            return;
-          }
-        } else {
-          val3 = val2;
-          val2 = val1;
-          val1 = "0";
-        }
-        // 13
-        if (line[pos] !== ".") {
-          err("No decimal separator (\".\") found.");
-          return;
-        }
-        pos++;
-        // 14-16
-        val4 = collect(/\d/);
-        if (val4.length !== 3) {
-          err("Milliseconds must be given in three digits.");
-          return;
-        }
-        // 17
-        if (parseInt(val2, 10) > 59) {
-          err("You cannot have more than 59 minutes.");
-          return;
-        }
-        if (parseInt(val3, 10) > 59) {
-          err("You cannot have more than 59 seconds.");
-          return;
-        }
-        return parseInt(val1, 10) * 60 * 60 + parseInt(val2, 10) * 60 + parseInt(val3, 10) + parseInt(val4, 10) / 1000;
-      },
+  SPACE = /[\u0020\t\f]/,
+  NOSPACE = /[^\u0020\t\f]/,
+  pos = 0,
+  err = function(message) {
+    errorHandler(message, pos+1);
+  },
+  spaceBeforeSetting = true,
 
-      /* http://dev.w3.org/html5/webvtt/#parse-the-webvtt-settings */
-      parseSettings = function (input, cue) {
-        var settings = input.split(SPACE),
-            settingsLength = settings.length,
-            seen = [], i,
-            settingsElement, index, setting, value, lastValueIndex;
+  skip = function (pattern) {
+    while(
+      line[pos] !== undefined &&
+      pattern.test(line[pos])
+    ) {
+      pos++;
+    }
+  },
 
-        for (i = 0; i < settingsLength; i++) {
-          settingsElement = settings[i];
-          
-          if (settingsElement === "") {
+  collect = function (pattern) {
+    var str = "";
+    while(
+      line[pos] !== undefined &&
+      pattern.test(line[pos])
+    ) {
+      str += line[pos];
+      pos++;
+    }
+    return str;
+  },
+
+  /* http://dev.w3.org/html5/webvtt/#collect-a-webvtt-timestamp */
+  timestamp = function () {
+    var units = "minutes",
+    val1,
+    val2,
+    val3,
+    val4;
+    // 3
+    if (line[pos] === undefined) {
+      err("No timestamp found.");
+      return;
+    }
+    // 4
+    if (!/\d/.test(line[pos])) {
+      err("Timestamp must start with a character in the range 0-9.");
+      return;
+    }
+    // 5-7
+    val1 = collect(/\d/);
+    if (val1.length > 2 || parseInt(val1, 10) > 59) {
+      units = "hours";
+    }
+    // 8
+    if (line[pos] !== ":") {
+      err("No time unit separator found.");
+      return;
+    }
+    pos++;
+    // 9-11
+    val2 = collect(/\d/);
+    if (val2.length !== 2) {
+      err("Must be exactly two digits.");
+      return;
+    }
+    // 12
+    if (units === "hours" || line[pos] === ":") {
+      if (line[pos] !== ":") {
+        err("No seconds found or minutes is greater than 59.");
+        return;
+      }
+      pos++;
+      val3 = collect(/\d/);
+      if (val3.length !== 2) {
+        err("Must be exactly two digits.");
+        return;
+      }
+    } else {
+      val3 = val2;
+      val2 = val1;
+      val1 = "0";
+    }
+    // 13
+    if (line[pos] !== ".") {
+      err("No decimal separator (\".\") found.");
+      return;
+    }
+    pos++;
+    // 14-16
+    val4 = collect(/\d/);
+    if (val4.length !== 3) {
+      err("Milliseconds must be given in three digits.");
+      return;
+    }
+    // 17
+    if (parseInt(val2, 10) > 59) {
+      err("You cannot have more than 59 minutes.");
+      return;
+    }
+    if (parseInt(val3, 10) > 59) {
+      err("You cannot have more than 59 seconds.");
+      return;
+    }
+    return parseInt(val1, 10) * 60 * 60 + parseInt(val2, 10) * 60 + parseInt(val3, 10) + parseInt(val4, 10) / 1000;
+  },
+
+  /* http://dev.w3.org/html5/webvtt/#parse-the-webvtt-settings */
+  parseSettings = function (input, cue) {
+    var settings = input.split(SPACE),
+        settingsLength = settings.length,
+        seen = [], i,
+        settingsElement, index, setting, value, lastValueIndex;
+
+    for (i = 0; i < settingsLength; i++) {
+      settingsElement = settings[i];
+
+      if (settingsElement === "") {
+        continue;
+      }
+
+      index = settingsElement.indexOf(':');
+      setting = settingsElement.slice(0, index);
+      value = settingsElement.slice(index + 1);
+      lastValueIndex = value.length - 1;
+
+      if (seen.indexOf(setting) !== -1) {
+        err("Duplicate setting.");
+      }
+      seen.push(setting);
+
+      if (value === "") {
+        err("No value for setting defined.");
+        return;
+      }
+
+      switch (setting) {
+
+        case ("vertical"): // writing direction
+          if (value !== "rl" && value !== "lr") {
+            err("Writing direction can only be set to 'rl' or 'rl'.");
             continue;
           }
+          cue.direction = value;
+          break;
 
-          index = settingsElement.indexOf(':');
-          setting = settingsElement.slice(0, index);
-          value = settingsElement.slice(index + 1);
-          lastValueIndex = value.length - 1;
-
-          if (seen.indexOf(setting) !== -1) {
-            err("Duplicate setting.");
+        case ("line"): // line position
+          if (!/\d/.test(value)) {
+            err("Line position takes a number or percentage.");
+            continue;
           }
-          seen.push(setting);
-    
-          if (value === "") {
-            err("No value for setting defined.");
-            return;
+          if (value.indexOf("-", 1) !== -1) {
+            err("Line position can only have '-' at the start.");
+            continue;
           }
-
-          switch (setting) {
-
-            case ("vertical"): // writing direction
-              if (value !== "rl" && value !== "lr") {
-                err("Writing direction can only be set to 'rl' or 'rl'.");
-                continue;
-              }
-              cue.direction = value;
-              break;
-
-            case ("line"): // line position
-              if (!/\d/.test(value)) {
-                err("Line position takes a number or percentage.");
-                continue;
-              }
-              if (value.indexOf("-", 1) !== -1) {
-                err("Line position can only have '-' at the start.");
-                continue;
-              }
-              if (value.indexOf("%") !== -1 && value.indexOf("%") !== lastValueIndex) {
-                err("Line position can only have '%' at the end.");
-                continue;
-              }
-              if (value[0] === "-" && value[lastValueIndex] === "%") {
-                err("Line position cannot be a negative percentage.");
-                continue;
-              }
-              if (value[lastValueIndex] === "%") {
-                if (parseInt(value, 10) > 100) {
-                  err("Line position cannot be >100%.");
-                  continue;
-                }
-                cue.snapToLines = false;
-              }
-              cue.linePosition = parseInt(value, 10);
-              break;
-
-            case ("position"): // text position
-
-              if (value[lastValueIndex] !== "%") {
-                err("Text position must be a percentage:" + value);
-                continue;
-              }
-              if (parseInt(value, 10) > 100) {
-                err("Size cannot be >100%.");
-                continue;
-              }
-              cue.textPosition = parseInt(value, 10);
-              break;
-
-            case ("size"): // size
-              if (value[lastValueIndex] !== "%") {
-                err("Size must be a percentage.");
-                continue;
-              }
-              if (parseInt(value, 10) > 100) {
-                err("Size cannot be >100%.");
-                continue;
-              }
-              cue.size = parseInt(value, 10);
-              break;
-
-            case ("align"): // alignment
-              if (value !== "start" && value !== "middle" && value !== "end" && value !== "left" && value !== "right") {
-                err("Alignment can only be set to 'start', 'middle', 'end', 'left' or 'right'.");
-                continue;
-              }
-              cue.alignment = value;
-              break;
-
-            case ("region"): // region
-              if (seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) {
-                continue;
-              }
-              cue.region = value;
-              break;
-
-            default:
-              err("Invalid setting:" + setting);
+          if (value.indexOf("%") !== -1 && value.indexOf("%") !== lastValueIndex) {
+            err("Line position can only have '%' at the end.");
+            continue;
           }
-        } // end for
+          if (value[0] === "-" && value[lastValueIndex] === "%") {
+            err("Line position cannot be a negative percentage.");
+            continue;
+          }
+          if (value[lastValueIndex] === "%") {
+            if (parseInt(value, 10) > 100) {
+              err("Line position cannot be >100%.");
+              continue;
+            }
+            cue.snapToLines = false;
+          }
+          cue.linePosition = parseInt(value, 10);
+          break;
 
-        if ((seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) && seen.indexOf("region") !== -1) {
-            err("Ignoring region setting.");
-            cue.region = "";
-        }
-      };
+        case ("position"): // text position
+          if (value[lastValueIndex] !== "%") {
+            err("Text position must be a percentage:" + value);
+            continue;
+          }
+          if (parseInt(value, 10) > 100) {
+            err("Size cannot be >100%.");
+            continue;
+          }
+          cue.textPosition = parseInt(value, 10);
+          break;
+
+        case ("size"): // size
+          if (value[lastValueIndex] !== "%") {
+            err("Size must be a percentage.");
+            continue;
+          }
+          if (parseInt(value, 10) > 100) {
+            err("Size cannot be >100%.");
+            continue;
+          }
+          cue.size = parseInt(value, 10);
+          break;
+
+        case ("align"): // alignment
+          if (value !== "start" && value !== "middle" && value !== "end" && value !== "left" && value !== "right") {
+            err("Alignment can only be set to 'start', 'middle', 'end', 'left' or 'right'.");
+            continue;
+          }
+          cue.alignment = value;
+          break;
+
+        case ("region"): // region
+          if (seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) {
+            continue;
+          }
+          cue.region = value;
+          break;
+
+        default:
+          err("Invalid setting:" + setting);
+      }
+    } // end for
+
+    if ((seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) && seen.indexOf("region") !== -1) {
+      err("Ignoring region setting.");
+      cue.region = "";
+    }
+  };
 
   that.parse = function(cue, previousCueStart) {
     skip(SPACE);
     cue.startTime = timestamp();
-    
+
     var cueStartTime = cue.startTime;
-    
+
     if (cueStartTime === undefined) {
       return;
     }
@@ -589,9 +598,9 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
     }
     skip(SPACE);
     cue.endTime = timestamp();
-    
+
     var cueEndTime = cue.endTime;
-    
+
     if (cueEndTime === undefined) {
       return;
     }
@@ -606,7 +615,7 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
     parseSettings(line.substring(pos), cue);
     return true;
   };
-  
+
   that.parseTimestamp = function() {
     var ts = timestamp();
     if (line[pos] !== undefined) {
@@ -615,23 +624,24 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
     }
     return ts;
   };
-  
+
   return that;
 };
 
 var WebVTTCueTextParser = function(line, errorHandler) {
   var that = this,
-      pos = 0,
-      err = function(message) {
-        errorHandler(message, pos+1);
-      };
+    pos = 0,
+
+    err = function(message) {
+      errorHandler(message, pos+1);
+    };
 
   that.parse = function(cueStart, cueEnd) {
     var result = {
-          children:[]
-        },
-        current = result,
-        timestamps = [],
+      children:[]
+    },
+    current = result,
+    timestamps = [],
 
     attach = function (token) {
       current.children.push({
@@ -643,7 +653,7 @@ var WebVTTCueTextParser = function(line, errorHandler) {
       });
       current = current.children[current.children.length-1];
     },
-    
+
     inScope = function (name) {
       var node = current;
       while(node) {
@@ -732,11 +742,13 @@ var WebVTTCueTextParser = function(line, errorHandler) {
         result = "",
         buffer = "",
         classes = [],
+
         checkItem = function(item) {
           if (item) {
             return true;
-          } 
+          }
         };
+
     while(line[pos-1] !== undefined || pos === 0) {
       var c = line[pos];
       if (state === "data") {
@@ -869,6 +881,6 @@ var WebVTTCueTextParser = function(line, errorHandler) {
       pos++;
     }
   };
-  
+
   return that;
 };
