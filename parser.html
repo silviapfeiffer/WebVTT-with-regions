@@ -18,16 +18,14 @@
     "use strict";
 
     var video_viewport = [], output = [];
-    var parser, parsedData, dom, p;
+    var parser = [], parsedData = [], dom = [], p;
 
     // parse textarea
     parser = new WebVTTParser();
     parsedData = parser.parse(document.getElementsByTagName("textarea")[0].value);
 
     // print errors and WebVTT file as parsed
-    if (parsedData.errors.length > 0) {
-      printErrors(parsedData.errors, parsedData.time);
-    }
+    printErrors(parsedData.errors, parsedData.time);
     printWebVTTFile(parsedData);
 
     // assume video dimensions

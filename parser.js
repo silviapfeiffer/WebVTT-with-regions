@@ -100,12 +100,11 @@ var WebVTTParser = function() {
         }
 
       }
-
       /* TIMINGS */
       alreadyCollected = false;
       var timings = new WebVTTCueTimingsAndSettingsParser(line, err),
           previousCueStart = 0;
-      if (cues.length > 0) {
+       if (cues.length > 0) {
         previousCueStart = cues[cues.length-1].startTime;
       }
       if (!timings.parse(cue, previousCueStart)) {
@@ -440,19 +439,21 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
       parseSettings = function (input, cue) {
         var settings = input.split(SPACE),
             settingsLength = settings.length,
-            seen = [];
-        for(var i=0; i < settingsLength; i++) {
-          var settingsElement = settings[i];
+            seen = [], i,
+            settingsElement, index, setting, value, lastValueIndex;
+
+        for (i = 0; i < settingsLength; i++) {
+          settingsElement = settings[i];
           
           if (settingsElement === "") {
             continue;
           }
-    
-          var index = settingsElement.indexOf(':'),
-              setting = settingsElement.slice(0, index),
-              value = settingsElement.slice(index + 1),
-              lastValueIndex = value.length - 1;
-    
+
+          index = settingsElement.indexOf(':');
+          setting = settingsElement.slice(0, index);
+          value = settingsElement.slice(index + 1);
+          lastValueIndex = value.length - 1;
+
           if (seen.indexOf(setting) !== -1) {
             err("Duplicate setting.");
           }
@@ -462,77 +463,90 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
             err("No value for setting defined.");
             return;
           }
-    
-          if (setting === "vertical") { // writing direction
-            if (value !== "rl" && value !== "lr") {
-              err("Writing direction can only be set to 'rl' or 'rl'.");
-              continue;
-            }
-            cue.direction = value;
-          } else if (setting === "line") { // line position
-            if (!/\d/.test(value)) {
-              err("Line position takes a number or percentage.");
-              continue;
-            }
-            if (value.indexOf("-", 1) !== -1) {
-              err("Line position can only have '-' at the start.");
-              continue;
-            }
-            if (value.indexOf("%") !== -1 && value.indexOf("%") !== lastValueIndex) {
-              err("Line position can only have '%' at the end.");
-              continue;
-            }
-            if (value[0] === "-" && value[lastValueIndex] === "%") {
-              err("Line position cannot be a negative percentage.");
-              continue;
-            }
-            if (value[lastValueIndex] === "%") {
-              if (parseInt(value, 10) > 100) {
-                err("Line position cannot be >100%.");
+
+          switch (setting) {
+
+            case ("vertical"): // writing direction
+              if (value !== "rl" && value !== "lr") {
+                err("Writing direction can only be set to 'rl' or 'rl'.");
                 continue;
               }
-              cue.snapToLines = false;
-            }
-            cue.linePosition = parseInt(value, 10);
-          } else if (setting === "position") { // text position
-            if (value[lastValueIndex] !== "%") {
-              err("Text position must be a percentage.");
-              continue;
-            }
-            if (parseInt(value, 10) > 100) {
-              err("Size cannot be >100%.");
-              continue;
-            }
-            cue.textPosition = parseInt(value, 10);
-          } else if (setting === "size") { // size
-            if (value[lastValueIndex] !== "%") {
-              err("Size must be a percentage.");
-              continue;
-            }
-            if (parseInt(value, 10) > 100) {
-              err("Size cannot be >100%.");
-              continue;
-            }
-            cue.size = parseInt(value, 10);
-          } else if (setting === "align") { // alignment
-            if (value !== "start" && value !== "middle" && value !== "end" && value !== "left" && value !== "right") {
-              err("Alignment can only be set to 'start', 'middle', 'end', 'left' or 'right'.");
-              continue;
-            }
-            cue.alignment = value;
-          } else if (setting === "region") { // region
-            if (seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) {
-              continue;
-            }
-            cue.region = value;
-          } else {
-            err("Invalid setting.");
+              cue.direction = value;
+              break;
+
+            case ("line"): // line position
+              if (!/\d/.test(value)) {
+                err("Line position takes a number or percentage.");
+                continue;
+              }
+              if (value.indexOf("-", 1) !== -1) {
+                err("Line position can only have '-' at the start.");
+                continue;
+              }
+              if (value.indexOf("%") !== -1 && value.indexOf("%") !== lastValueIndex) {
+                err("Line position can only have '%' at the end.");
+                continue;
+              }
+              if (value[0] === "-" && value[lastValueIndex] === "%") {
+                err("Line position cannot be a negative percentage.");
+                continue;
+              }
+              if (value[lastValueIndex] === "%") {
+                if (parseInt(value, 10) > 100) {
+                  err("Line position cannot be >100%.");
+                  continue;
+                }
+                cue.snapToLines = false;
+              }
+              cue.linePosition = parseInt(value, 10);
+              break;
+
+            case ("position"): // text position
+
+              if (value[lastValueIndex] !== "%") {
+                err("Text position must be a percentage:" + value);
+                continue;
+              }
+              if (parseInt(value, 10) > 100) {
+                err("Size cannot be >100%.");
+                continue;
+              }
+              cue.textPosition = parseInt(value, 10);
+              break;
+
+            case ("size"): // size
+              if (value[lastValueIndex] !== "%") {
+                err("Size must be a percentage.");
+                continue;
+              }
+              if (parseInt(value, 10) > 100) {
+                err("Size cannot be >100%.");
+                continue;
+              }
+              cue.size = parseInt(value, 10);
+              break;
+
+            case ("align"): // alignment
+              if (value !== "start" && value !== "middle" && value !== "end" && value !== "left" && value !== "right") {
+                err("Alignment can only be set to 'start', 'middle', 'end', 'left' or 'right'.");
+                continue;
+              }
+              cue.alignment = value;
+              break;
+
+            case ("region"): // region
+              if (seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) {
+                continue;
+              }
+              cue.region = value;
+              break;
+
+            default:
+              err("Invalid setting:" + setting);
           }
-        }
-        if (
-            (seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) &&
-            seen.indexOf("region") !== -1
-          ) {
+        } // end for
+
+        if ((seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) && seen.indexOf("region") !== -1) {
             err("Ignoring region setting.");
             cue.region = "";
         }
