@@ -232,17 +232,118 @@ var WebVTT2DocumentFragment = function() {
     result += " top:" + top + "px;";
 
     return result;
+  },
+
+  getRegion = function(region, metadatas) {
+    var i;
+    for (i = 0; i < metadatas.length; i++) {
+      if (metadatas[i].name === "Region") {
+        if (metadatas[i].regionAttributes.id === region) {
+          return metadatas[i].regionAttributes;
+        }
+      }
+    }
+    return;
+  },
+
+  setCueRegion = function(cue, videoWidth, videoHeight, domFragment, parent, regionAttributes, innerHtml) {
+    var maxsize = 0,
+        lineHeight = 0,
+        fontSize = 0,
+        left = 0,
+        top = 0,
+        width = 0,
+        height = 0,
+        cssRegion = "";
+
+    // run normal layout if cue is vertical
+    if (cue.direction === "lr" || cue.direction === "rl") {
+      return getCueCSS(cue, videoWidth, videoHeight, domFragment, parent);
+    }
+
+    /* set defaults */
+    lineHeight = 0.05 * videoHeight;
+    fontSize = lineHeight / 1.3;
+
+    cssRegion = "position:absolute;";
+    cssRegion += " unicode-bidi:-webkit-plaintext; unicode-bidi:-moz-plaintext; unicode-bidi:plaintext;";
+    cssRegion += " direction:ltr;";
+    cssRegion += " background:rgba(0,0,0,0.8);";
+    cssRegion += " word-wrap:break-word; overflow-wrap:break-word;";
+    cssRegion += " font: " + fontSize + "px sans-serif;";
+    cssRegion += " line-height:" + lineHeight + "px;";
+    cssRegion += " color: rgba(255, 255, 255, 1);";
+
+    cssRegion += " overflow:hidden;";
+
+    // TODO: vertical cues.
+    cssRegion += " writing-mode:horizontal-tb;-webkit-writing-mode:horizontal-tb;";
+
+    // calculate width and height of region
+    width = regionAttributes.width * videoWidth / 100.0;
+    cssRegion += " width:" + width + "px;";
+
+    height = regionAttributes.height * lineHeight;
+    cssRegion += " height:" + height + "px;";
+
+    // calculate left and top positioning of region
+    left = regionAttributes.anchorPositionX * videoWidth / 100.0 - regionAttributes.anchorX  * width / 100.0;
+    cssRegion += " left:" + left + "px;";
+
+    top = regionAttributes.anchorPositionY * videoHeight / 100.0 - regionAttributes.anchorY  * height / 100.0;
+    cssRegion += " top:" + top + "px;";
+
+    // set the CSS on the domFragment
+    // make it the flexbox container
+    cssRegion += " display:-webkit-flex; -webkit-flex-flow:column; -webkit-justify-content: flex-end;";
+    domFragment.setAttribute("style", cssRegion);
+
+    // append a child to domFragment with adequate positioning, alignment and text
+    var cueText = document.createElement("div");
+    cueText.innerHTML = tree2HTML(cue.tree.children);
+    domFragment.appendChild(cueText);
+
+    // set the CSS for the child
+    var cssCueText = "";
+
+    cssCueText += "font: " + fontSize + "px sans-serif;";
+    cssCueText += " line-height:" + lineHeight + "px;";
+    cssCueText += " color: rgba(255, 255, 255, 1);";
+    cssCueText += " width: 100%;"
+    cssCueText += " height:" + lineHeight + "px;";
+
+    if (cue.alignment === "middle") {
+      cssCueText += " text-align:center;";
+    } else {
+      cssCueText += " text-align:" + cue.alignment + ";";
+    }
+
+    if (isNumber(cue.linePosition)) {
+      left = cue.linePosition * videoWidth / 100.0;
+      cssCueText += " left:" + left + "px;";
+    }
+
+    cueText.setAttribute("style", cssCueText);
+
+    return;
   };
 
+
   /* convert cue to a HTML fragment */
-  that.cue2DOMFragment = function(cue, videoWidth, videoHeight, parent) {
+  that.cue2DOMFragment = function(parsedData, i, videoWidth, videoHeight, parent) {
     var domFragment = document.createElement("div");
+    var cue = parsedData.cues[i], region, regionAttributes;
     domFragment.setAttribute("style", "display:inline;");
-    domFragment.innerHTML = tree2HTML(cue.tree.children);
     if (cue.id) {
       domFragment.setAttribute("id", cue.id);
     }
-    domFragment.setAttribute("style", getCueCSS(cue, videoWidth, videoHeight, domFragment, parent));
+    if (cue.region) {
+      regionAttributes = getRegion(cue.region, parsedData.metadatas);
+      setCueRegion(cue, videoWidth, videoHeight, domFragment, parent, regionAttributes, tree2HTML(cue.tree.children));
+    } else {
+      domFragment.innerHTML = tree2HTML(cue.tree.children);
+      domFragment.setAttribute("style", getCueCSS(cue, videoWidth, videoHeight, domFragment, parent));
+    }
 
     return {
       domFragment: domFragment,

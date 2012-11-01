@@ -53,7 +53,7 @@
     // & append into viewports
     dom = new WebVTT2DocumentFragment();
     for (i = 0; i < parsedData.cues.length; i++) {
-      output = dom.cue2DOMFragment(parsedData.cues[i], videoWidth, videoHeight, video_viewport[i]);
+      output = dom.cue2DOMFragment(parsedData, i, videoWidth, videoHeight, video_viewport[i]);
       p = document.createElement("p");
       p.textContent = "Cue from " + output.startTime + " to " + output.endTime;
       screenshots.insertBefore(p, video_viewport[i]);
