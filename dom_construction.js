@@ -1,6 +1,6 @@
 "use strict";
 
-var EDGEMARGIN = 0.1; /* % */
+var EDGEMARGIN = 0.3; /* % */
 
 var WebVTT2DocumentFragment = function() {
   var that = this,
@@ -156,14 +156,16 @@ var WebVTT2DocumentFragment = function() {
     }
 
     // Only apply edgemargin to non-percentage positioned cues
+    // why is there no margin in yposition dimension?
     // https://www.w3.org/Bugs/Public/show_bug.cgi?id=19744
     if (cue.snapToLines === true) {
-      if (xposition < EDGEMARGIN && (xposition + size > EDGEMARGIN)) {
-        xposition += EDGEMARGIN;
-        size -= EDGEMARGIN;
-        rightmarginedge = 100 - EDGEMARGIN;
+      var edgemargin = EDGEMARGIN * videoWidth / 100.0;
+      if (xposition < edgemargin && (xposition + size > edgemargin)) {
+        xposition += edgemargin;
+        size -= edgemargin;
+        rightmarginedge = 100 - edgemargin;
         if (xposition < rightmarginedge && (xposition + size > rightmarginedge)) {
-          size -= EDGEMARGIN;
+          size -= edgemargin;
         }
       }
     }
