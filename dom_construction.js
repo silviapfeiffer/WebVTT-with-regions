@@ -189,7 +189,7 @@ var WebVTT2DocumentFragment = function() {
           linePosition = 100;
         }
       }
-    } else { // 'auto'
+    } else { // 'auto' linePosition
       if (cue.snapToLines === false) {
         linePosition = 100;
       } else {
@@ -199,7 +199,7 @@ var WebVTT2DocumentFragment = function() {
 
     /* adjust positions */
     if (cue.snapToLines === true) {
-      margin = EDGEMARGIN;
+      margin = EDGEMARGIN * videoHeight / 100.0;
       fullDimension = videoHeight;
       maxdimension = fullDimension - (2 * margin);
       step = lineHeight;
