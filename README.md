@@ -12,16 +12,15 @@ Load parser.html in your browser.
 * it outputs what the browser would accept as a parsed version of that file
 * it outputs a rendering of each cue in the WebVTT file on a fake video viewport
 
-You can edit the WebVTT file and it will immediately update the parsed output and the rendering.
+You can edit the WebVTT file live and it will immediately update the parsed output and the rendering.
 
 
 ## Known bugs
 
 While the parser is complete, the rendering is not fully implemented yet:
 * missing support for vertically rendered text
-* regions are not rendered yet
+* missing support for rtl text
 * when "align" is added to cue settings, positioning breaks
-
 
 ## Thanks
 
