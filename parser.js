@@ -202,17 +202,18 @@ var WebVTTMetadataParser = function(errorHandler) {
     /* parse region attributes */
     var attributes = value.split(SPACE),
     attributesLength = attributes.length,
-    anchorIndex, anchorX, anchorY, lastAnchorX, lastAnchorY,
+    pinIndex, pinX, pinY, lastpinX, lastpinY,
+    anchorIndex, anchorX, anchorY, lastanchorX, lastanchorY,
     seen = [];
 
     var regionAttributes = {
       id:"",
       width:100, /* % */
       height:3,
-      anchorX:0, /* % */
-      anchorY:100, /* % */
-      anchorPositionX:0, /* % */
-      anchorPositionY:100, /* % */
+      pinX:0, /* % */
+      pinY:100, /* % */
+      anchorLocationX:0, /* % */
+      anchorLocationY:100, /* % */
       scroll:""                
     };
 
@@ -265,52 +266,52 @@ var WebVTTMetadataParser = function(errorHandler) {
           regionAttributes.height = parseInt(attributeValue, 10);
           break;
 
-        case ("anchorpoint"): // anchorpoint
-          anchorIndex = attributeValue.indexOf(','),
-          anchorX = attributeValue.slice(0, anchorIndex),
-          anchorY = attributeValue.slice(anchorIndex + 1),
-          lastAnchorX = anchorX.length - 1,
-          lastAnchorY = anchorY.length - 1;
-          if (anchorX[lastAnchorX] !== "%" || anchorY[lastAnchorY] !== "%") {
+        case ("pin"): // pin
+          pinIndex = attributeValue.indexOf(','),
+          pinX = attributeValue.slice(0, pinIndex),
+          pinY = attributeValue.slice(pinIndex + 1),
+          lastpinX = pinX.length - 1,
+          lastpinY = pinY.length - 1;
+          if (pinX[lastpinX] !== "%" || pinY[lastpinY] !== "%") {
             err("Region anchor points have to be a percentage.");
             continue;
           }
-          regionAttributes.anchorX = parseInt(anchorX, 10);
-          if (regionAttributes.anchorX > 100 || regionAttributes.anchorX < 0) {
+          regionAttributes.pinX = parseInt(pinX, 10);
+          if (regionAttributes.pinX > 100 || regionAttributes.pinX < 0) {
             err("Region anchor point X has to be between 0 and 100.");
-            regionAttributes.anchorX = 0;
+            regionAttributes.pinX = 0;
             continue;
           }
-          regionAttributes.anchorY = parseInt(anchorY, 10);
-          if (regionAttributes.anchorY > 100 || regionAttributes.anchorY < 0) {
+          regionAttributes.pinY = parseInt(pinY, 10);
+          if (regionAttributes.pinY > 100 || regionAttributes.pinY < 0) {
             err("Region anchor point Y has to be between 0 and 100.");
-            regionAttributes.anchorX = 0;
-            regionAttributes.anchorY = 100;
+            regionAttributes.pinX = 0;
+            regionAttributes.pinY = 100;
             continue;
           }
           break;
 
-        case ("anchorposition"): // anchorposition
+        case ("anchorlocation"): // anchorLocation
           anchorIndex = attributeValue.indexOf(','),
           anchorX = attributeValue.slice(0, anchorIndex),
           anchorY = attributeValue.slice(anchorIndex + 1),
-          lastAnchorX = anchorX.length - 1,
-          lastAnchorY = anchorY.length - 1;
-          if (anchorX[lastAnchorX] !== "%" || anchorY[lastAnchorY] !== "%") {
+          lastanchorX = anchorX.length - 1,
+          lastanchorY = anchorY.length - 1;
+          if (anchorX[lastanchorX] !== "%" || anchorY[lastanchorY] !== "%") {
             err("Region anchor positions have to be a percentage.");
             continue;
           }
-          regionAttributes.anchorPositionX = parseInt(anchorX, 10);
-          if (regionAttributes.anchorX > 100 || regionAttributes.anchorX < 0) {
+          regionAttributes.anchorLocationX = parseInt(anchorX, 10);
+          if (regionAttributes.anchorLocationX > 100 || regionAttributes.anchorLocationX < 0) {
             err("Region anchor position X has to be between 0 and 100.");
-            regionAttributes.anchorPositionX = 0;
+            regionAttributes.anchorLocationX = 0;
             continue;
           }
-          regionAttributes.anchorPositionY = parseInt(anchorY, 10);
-          if (regionAttributes.anchorY > 100 || regionAttributes.anchorY < 0) {
+          regionAttributes.anchorLocationY = parseInt(anchorY, 10);
+          if (regionAttributes.anchorLocationY > 100 || regionAttributes.anchorLocationY < 0) {
             err("Region anchor position Y has to be between 0 and 100.");
-            regionAttributes.anchorPositionX = 0;
-            regionAttributes.anchorPositionY = 100;
+            regionAttributes.anchorLocationX = 0;
+            regionAttributes.anchorLocationY = 100;
             continue;
           }
           break;

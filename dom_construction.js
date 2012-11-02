@@ -292,10 +292,10 @@ var WebVTT2DocumentFragment = function() {
     cssRegion += " height:" + height + "px;";
 
     // calculate left and top positioning of region
-    left = regionAttributes.anchorPositionX * videoWidth / 100.0 - regionAttributes.anchorX  * width / 100.0);
+    left = regionAttributes.anchorLocationX * videoWidth / 100.0 - regionAttributes.pinX  * width / 100.0;
     cssRegion += " left:" + left + "px;";
 
-    top = regionAttributes.anchorPositionY * videoHeight / 100.0 - regionAttributes.anchorY  * height / 100.0);
+    top = regionAttributes.anchorLocationY * videoHeight / 100.0 - regionAttributes.pinY  * height / 100.0;
     cssRegion += " top:" + top + "px;";
 
     // set the CSS on the domFragment
