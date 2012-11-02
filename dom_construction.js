@@ -213,6 +213,9 @@ var WebVTT2DocumentFragment = function() {
       }
       top += position;
 
+      // attach the innerHTML so we can measure the height
+      domFragment.innerHTML = tree2HTML(cue.tree.children);
+
       // calculate how much of the cue is outside the video viewport
       divHeight = getTextHeight(domFragment, parent, cssCue);
       var score = maxdimension - top - divHeight;
@@ -233,7 +236,6 @@ var WebVTT2DocumentFragment = function() {
 
     // attach the CSS
     domFragment.setAttribute("style", cssCue);
-    domFragment.innerHTML = tree2HTML(cue.tree.children);
 
     return;
   },
