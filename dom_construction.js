@@ -197,6 +197,9 @@ var WebVTT2DocumentFragment = function() {
       }
     }
 
+    // attach the innerHTML so we can measure the height for adjustments.
+    domFragment.innerHTML = tree2HTML(cue.tree.children);
+
     /* adjust positions */
     if (cue.snapToLines === true) {
       margin = EDGEMARGIN * videoHeight / 100.0;
@@ -212,9 +215,6 @@ var WebVTT2DocumentFragment = function() {
         position += margin;
       }
       top += position;
-
-      // attach the innerHTML so we can measure the height
-      domFragment.innerHTML = tree2HTML(cue.tree.children);
 
       // calculate how much of the cue is outside the video viewport
       divHeight = getTextHeight(domFragment, parent, cssCue);
