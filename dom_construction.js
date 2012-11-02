@@ -1,6 +1,6 @@
 "use strict";
 
-var EDGEMARGIN = 0.3; /* % */
+var EDGEMARGIN = 1.0; /* % */
 
 var WebVTT2DocumentFragment = function() {
   var that = this,
@@ -72,7 +72,7 @@ var WebVTT2DocumentFragment = function() {
 
   /* convert cue settings to CSS for cue div */
   /* TODO: vertical settings; rtl text */
-  getCueCSS = function(cue, videoWidth, videoHeight, domFragment, parent) {
+  attachCueCSSInnerHTML = function(cue, videoWidth, videoHeight, domFragment, parent) {
     var maxsize = 0,
         size = 0,
         width = 0,
@@ -91,47 +91,47 @@ var WebVTT2DocumentFragment = function() {
         linePosition = 0,
         position = 0,
         divHeight = 0,
-        result = "";
+        cssCue = "";
 
     /* set defaults */
-    lineHeight = 0.05 * videoHeight;
+    lineHeight = 0.0533 * videoHeight;
     fontSize = lineHeight / 1.3;
 
-    result = "position:absolute;";
-    result += " unicode-bidi:-webkit-plaintext; unicode-bidi:-moz-plaintext; unicode-bidi:plaintext;";
-    result += " direction:ltr;";
-    result += " background:rgba(0,0,0,0.8);";
-    result += " word-wrap:break-word; overflow-wrap:break-word;";
-    result += " font: " + fontSize + "px sans-serif;";
-    result += " line-height:" + lineHeight + "px;";
-    result += " color: rgba(255, 255, 255, 1);";
+    cssCue = "position:absolute;";
+    cssCue += " unicode-bidi:-webkit-plaintext; unicode-bidi:-moz-plaintext; unicode-bidi:plaintext;";
+    cssCue += " direction:ltr;";
+    cssCue += " background:rgba(0,0,0,0.8);";
+    cssCue += " word-wrap:break-word; overflow-wrap:break-word;";
+    cssCue += " font: " + fontSize + "px sans-serif;";
+    cssCue += " line-height:" + lineHeight + "px;";
+    cssCue += " color: rgba(255, 255, 255, 1);";
 
     if (cue.direction === "lr") {
-      result += " writing-mode:vertical-lr;-webkit-writing-mode:vertical-lr;";
+      cssCue += " writing-mode:vertical-lr;-webkit-writing-mode:vertical-lr;";
     } else if (cue.direction === "rl") {
-      result += " writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;";
+      cssCue += " writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;";
     } else {
-      result += " writing-mode:horizontal-tb;-webkit-writing-mode:horizontal-tb;";
+      cssCue += " writing-mode:horizontal-tb;-webkit-writing-mode:horizontal-tb;";
     }
 
     /* assuming ltr */
     if (cue.alignment === "start") {
-      result += " text-align:start;";
+      cssCue += " text-align:start;";
       maxsize = 100 - cue.textPosition;
     } else if (cue.alignment === "end") {
-      result += " text-align:end;";
+      cssCue += " text-align:end;";
       maxsize = cue.textPosition;
     } else if (cue.alignment === "middle" && cue.textPosition <= 50) {
-      result += " text-align:center;";
+      cssCue += " text-align:center;";
       maxsize = cue.textPosition * 2;
     } else if (cue.alignment === "middle" && cue.textPosition > 50) {
-      result += " text-align:center;";
+      cssCue += " text-align:center;";
       maxsize = (100 - cue.textPosition) * 2;
     } else if (cue.alignment === "left") {
-      result += " text-align:left";
+      cssCue += " text-align:left";
       maxsize = 100 - cue.textPosition;
     } else if (cue.alignment === "right") {
-      result += " text-align:right";
+      cssCue += " text-align:right";
       maxsize = cue.textPosition;
     }
 
@@ -171,13 +171,13 @@ var WebVTT2DocumentFragment = function() {
     }
 
     left = xposition * videoWidth / 100.0;
-    result += " left:" + left + "px;";
+    cssCue += " left:" + left + "px;";
 
     width = size * videoWidth / 100.0;
-    result += " width:" + width + "px;";
+    cssCue += " width:" + width + "px;";
 
     height = 'auto';
-    result += " height:auto;";
+    cssCue += " height:auto;";
 
     top = yposition * videoHeight / 100.0;
 
@@ -214,7 +214,7 @@ var WebVTT2DocumentFragment = function() {
       top += position;
 
       // calculate how much of the cue is outside the video viewport
-      divHeight = getTextHeight(domFragment, parent, result);
+      divHeight = getTextHeight(domFragment, parent, cssCue);
       var score = maxdimension - top - divHeight;
       while (top > 0 && score < 0 && top < maxdimension) {
         top += step;
@@ -229,9 +229,13 @@ var WebVTT2DocumentFragment = function() {
       //y = linePosition;
     }
 
-    result += " top:" + top + "px;";
+    cssCue += " top:" + top + "px;";
 
-    return result;
+    // attach the CSS
+    domFragment.setAttribute("style", cssCue);
+    domFragment.innerHTML = tree2HTML(cue.tree.children);
+
+    return;
   },
 
   getRegion = function(region, metadatas) {
@@ -246,8 +250,9 @@ var WebVTT2DocumentFragment = function() {
     return;
   },
 
-  setCueRegion = function(cue, videoWidth, videoHeight, domFragment, parent, regionAttributes, innerHtml) {
+  setCueRegionInnerHTML = function(cue, videoWidth, videoHeight, domFragment, parent, regionAttributes) {
     var maxsize = 0,
+        xmargin = 0, ymargin = 0,
         lineHeight = 0,
         fontSize = 0,
         left = 0,
@@ -262,7 +267,7 @@ var WebVTT2DocumentFragment = function() {
     }
 
     /* set defaults */
-    lineHeight = 0.05 * videoHeight;
+    lineHeight = 0.0533 * videoHeight;
     fontSize = lineHeight / 1.3;
 
     cssRegion = "position:absolute;";
@@ -287,10 +292,10 @@ var WebVTT2DocumentFragment = function() {
     cssRegion += " height:" + height + "px;";
 
     // calculate left and top positioning of region
-    left = regionAttributes.anchorPositionX * videoWidth / 100.0 - regionAttributes.anchorX  * width / 100.0;
+    left = regionAttributes.anchorPositionX * videoWidth / 100.0 - regionAttributes.anchorX  * width / 100.0);
     cssRegion += " left:" + left + "px;";
 
-    top = regionAttributes.anchorPositionY * videoHeight / 100.0 - regionAttributes.anchorY  * height / 100.0;
+    top = regionAttributes.anchorPositionY * videoHeight / 100.0 - regionAttributes.anchorY  * height / 100.0);
     cssRegion += " top:" + top + "px;";
 
     // set the CSS on the domFragment
@@ -339,10 +344,9 @@ var WebVTT2DocumentFragment = function() {
     }
     if (cue.region) {
       regionAttributes = getRegion(cue.region, parsedData.metadatas);
-      setCueRegion(cue, videoWidth, videoHeight, domFragment, parent, regionAttributes, tree2HTML(cue.tree.children));
+      setCueRegionInnerHTML(cue, videoWidth, videoHeight, domFragment, parent, regionAttributes);
     } else {
-      domFragment.innerHTML = tree2HTML(cue.tree.children);
-      domFragment.setAttribute("style", getCueCSS(cue, videoWidth, videoHeight, domFragment, parent));
+      attachCueCSSInnerHTML(cue, videoWidth, videoHeight, domFragment, parent);
     }
 
     return {
