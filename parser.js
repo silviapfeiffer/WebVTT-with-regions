@@ -202,7 +202,7 @@ var WebVTTMetadataParser = function(errorHandler) {
     /* parse region attributes */
     var attributes = value.split(SPACE),
     attributesLength = attributes.length,
-    pinIndex, pinX, pinY, lastpinX, lastpinY,
+    regionpointIndex, regionpointX, regionpointY, lastregionpointX, lastregionpointY,
     anchorIndex, anchorX, anchorY, lastanchorX, lastanchorY,
     seen = [];
 
@@ -210,10 +210,10 @@ var WebVTTMetadataParser = function(errorHandler) {
       id:"",
       width:100, /* % */
       height:3,
-      pinX:0, /* % */
-      pinY:100, /* % */
-      anchorLocationX:0, /* % */
-      anchorLocationY:100, /* % */
+      regionpointX:0, /* % */
+      regionpointY:100, /* % */
+      screenanchorX:0, /* % */
+      screenanchorY:100, /* % */
       scroll:""                
     };
 
@@ -266,32 +266,32 @@ var WebVTTMetadataParser = function(errorHandler) {
           regionAttributes.height = parseInt(attributeValue, 10);
           break;
 
-        case ("pin"): // pin
-          pinIndex = attributeValue.indexOf(','),
-          pinX = attributeValue.slice(0, pinIndex),
-          pinY = attributeValue.slice(pinIndex + 1),
-          lastpinX = pinX.length - 1,
-          lastpinY = pinY.length - 1;
-          if (pinX[lastpinX] !== "%" || pinY[lastpinY] !== "%") {
+        case ("regionpoint"): // regionpoint
+          regionpointIndex = attributeValue.indexOf(','),
+          regionpointX = attributeValue.slice(0, regionpointIndex),
+          regionpointY = attributeValue.slice(regionpointIndex + 1),
+          lastregionpointX = regionpointX.length - 1,
+          lastregionpointY = regionpointY.length - 1;
+          if (regionpointX[lastregionpointX] !== "%" || regionpointY[lastregionpointY] !== "%") {
             err("Region anchor points have to be a percentage.");
             continue;
           }
-          regionAttributes.pinX = parseInt(pinX, 10);
-          if (regionAttributes.pinX > 100 || regionAttributes.pinX < 0) {
+          regionAttributes.regionpointX = parseInt(regionpointX, 10);
+          if (regionAttributes.regionpointX > 100 || regionAttributes.regionpointX < 0) {
             err("Region anchor point X has to be between 0 and 100.");
-            regionAttributes.pinX = 0;
+            regionAttributes.regionpointX = 0;
             continue;
           }
-          regionAttributes.pinY = parseInt(pinY, 10);
-          if (regionAttributes.pinY > 100 || regionAttributes.pinY < 0) {
+          regionAttributes.regionpointY = parseInt(regionpointY, 10);
+          if (regionAttributes.regionpointY > 100 || regionAttributes.regionpointY < 0) {
             err("Region anchor point Y has to be between 0 and 100.");
-            regionAttributes.pinX = 0;
-            regionAttributes.pinY = 100;
+            regionAttributes.regionpointX = 0;
+            regionAttributes.regionpointY = 100;
             continue;
           }
           break;
 
-        case ("anchorlocation"): // anchorLocation
+        case ("screenanchor"): // screenanchor
           anchorIndex = attributeValue.indexOf(','),
           anchorX = attributeValue.slice(0, anchorIndex),
           anchorY = attributeValue.slice(anchorIndex + 1),
@@ -301,17 +301,17 @@ var WebVTTMetadataParser = function(errorHandler) {
             err("Region anchor positions have to be a percentage.");
             continue;
           }
-          regionAttributes.anchorLocationX = parseInt(anchorX, 10);
-          if (regionAttributes.anchorLocationX > 100 || regionAttributes.anchorLocationX < 0) {
+          regionAttributes.screenanchorX = parseInt(anchorX, 10);
+          if (regionAttributes.screenanchorX > 100 || regionAttributes.screenanchorX < 0) {
             err("Region anchor position X has to be between 0 and 100.");
-            regionAttributes.anchorLocationX = 0;
+            regionAttributes.screenanchorX = 0;
             continue;
           }
-          regionAttributes.anchorLocationY = parseInt(anchorY, 10);
-          if (regionAttributes.anchorLocationY > 100 || regionAttributes.anchorLocationY < 0) {
+          regionAttributes.screenanchorY = parseInt(anchorY, 10);
+          if (regionAttributes.screenanchorY > 100 || regionAttributes.screenanchorY < 0) {
             err("Region anchor position Y has to be between 0 and 100.");
-            regionAttributes.anchorLocationX = 0;
-            regionAttributes.anchorLocationY = 100;
+            regionAttributes.screenanchorX = 0;
+            regionAttributes.screenanchorY = 100;
             continue;
           }
           break;

@@ -98,8 +98,8 @@ var WebVTTSerializer = function() {
     }
     result += " width=" + attributes.width + "%";
     result += " height=" + attributes.height;
-    result += " pin=" + attributes.pinX + "%," + attributes.pinY + "%";
-    result += " anchorLocation=" + attributes.anchorLocationX + "%," + attributes.anchorLocationY + "%";
+    result += " regionpoint=" + attributes.regionpointX + "%," + attributes.regionpointY + "%";
+    result += " screenanchor=" + attributes.screenanchorX + "%," + attributes.screenanchorY + "%";
     if (attributes.scroll) {
       result += " scroll=" + attributes.scroll;
     }
