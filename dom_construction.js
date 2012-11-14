@@ -216,6 +216,7 @@ var WebVTT2DocumentFragment = function() {
       }
       top += position;
 
+      // FIXME: adjustment not according to spec
       // calculate how much of the cue is outside the video viewport
       divHeight = getTextHeight(domFragment, parent, cssCue);
       var score = maxdimension - top - divHeight;
@@ -291,18 +292,18 @@ var WebVTT2DocumentFragment = function() {
     cssRegion += " width:" + width + "px;";
 
     height = regionAttributes.height * lineHeight;
-    cssRegion += " height:" + height + "px;";
+    cssRegion += " max-height:" + height + "px;";
+    cssRegion += " min-height:0px;";
 
     // calculate left and top positioning of region
     left = regionAttributes.viewportanchorX * videoWidth / 100.0 - regionAttributes.regionanchorX  * width / 100.0;
     cssRegion += " left:" + left + "px;";
 
-    top = regionAttributes.viewportanchorY * videoHeight / 100.0 - regionAttributes.regionanchorY  * height / 100.0;
-    cssRegion += " top:" + top + "px;";
+    // make it the flex container
+    cssRegion += " display: -webkit-inline-flex;";
+    cssRegion += " -webkit-flex-flow:column; -webkit-justify-content: flex-end;";
 
     // set the CSS on the domFragment
-    // make it the flexbox container
-    cssRegion += " display:-webkit-flex; -webkit-flex-flow:column; -webkit-justify-content: flex-end;";
     domFragment.setAttribute("style", cssRegion);
 
     // append a child to domFragment with adequate positioning, alignment and text
@@ -317,7 +318,6 @@ var WebVTT2DocumentFragment = function() {
     cssCueText += " line-height:" + lineHeight + "px;";
     cssCueText += " color: rgba(255, 255, 255, 1);";
     cssCueText += " width: 100%;"
-    cssCueText += " height:" + lineHeight + "px;";
 
     if (cue.alignment === "middle") {
       cssCueText += " text-align:center;";
@@ -330,7 +330,21 @@ var WebVTT2DocumentFragment = function() {
       cssCueText += " left:" + left + "px;";
     }
 
+    // get number of lines in cue to calculate height
+    var cueHeight = getTextHeight(cueText, parent, cssCueText);
+    var lines = cueHeight/12;
+    cssCueText += " height:" + lines * lineHeight + "px;";
+
     cueText.setAttribute("style", cssCueText);
+
+    // adjust top position of region from height of region
+    var regionHeight = getTextHeight(domFragment, parent, cssRegion);
+
+    top = regionAttributes.viewportanchorY * videoHeight / 100.0 - regionAttributes.regionanchorY  * regionHeight / 100.0;
+    cssRegion += " top:" + top + "px;";
+
+    // reset the CSS on the domFragment
+    domFragment.setAttribute("style", cssRegion);
 
     return;
   };
