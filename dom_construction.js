@@ -4,6 +4,7 @@ var EDGEMARGIN = 1.0; /* % */
 
 var WebVTT2DocumentFragment = function() {
   var that = this,
+    regions = [],
 
   /* construct DOM tree out of cue content */
   tree2HTML = function(tree) {
@@ -72,7 +73,7 @@ var WebVTT2DocumentFragment = function() {
 
   /* convert cue settings to CSS for cue div */
   /* TODO: vertical settings; rtl text */
-  attachCueCSSInnerHTML = function(cue, videoWidth, videoHeight, domFragment, parent) {
+  renderNormalCue = function(cue, videoWidth, videoHeight, parent) {
     var maxsize = 0,
         size = 0,
         width = 0,
@@ -93,11 +94,17 @@ var WebVTT2DocumentFragment = function() {
         divHeight = 0,
         cssCue = "";
 
+    var domFragment = document.createElement("div");
+    if (cue.id) {
+      domFragment.setAttribute("id", cue.id);
+    }
+
     /* set defaults */
     lineHeight = 0.0533 * videoHeight;
     fontSize = lineHeight / 1.3;
 
     cssCue = "position:absolute;";
+    cssCue += " display:inline;";
     cssCue += " unicode-bidi:-webkit-plaintext; unicode-bidi:-moz-plaintext; unicode-bidi:plaintext;";
     cssCue += " direction:ltr;";
     cssCue += " background:rgba(0,0,0,0.8);";
@@ -238,36 +245,14 @@ var WebVTT2DocumentFragment = function() {
     // attach the CSS
     domFragment.setAttribute("style", cssCue);
 
-    return;
+    return domFragment;
   },
 
-  getRegion = function(region, metadatas) {
-    var i;
-    for (i = 0; i < metadatas.length; i++) {
-      if (metadatas[i].name === "Region") {
-        if (metadatas[i].regionAttributes.id === region) {
-          return metadatas[i].regionAttributes;
-        }
-      }
-    }
-    return;
-  },
-
-  setCueRegionInnerHTML = function(cue, videoWidth, videoHeight, domFragment, parent, regionAttributes) {
-    var maxsize = 0,
-        xmargin = 0, ymargin = 0,
-        lineHeight = 0,
-        fontSize = 0,
-        left = 0,
-        top = 0,
-        width = 0,
-        height = 0,
-        cssRegion = "";
-
-    // run normal layout if cue is vertical
-    if (cue.direction === "lr" || cue.direction === "rl") {
-      return getCueCSS(cue, videoWidth, videoHeight, domFragment, parent);
-    }
+  setupRegion = function(regionAttributes, videoWidth, videoHeight) {
+    var domFragment = document.createElement("div");
+    var lineHeight = 0,
+      fontSize = 0,
+      cssRegion = "";
 
     /* set defaults */
     lineHeight = 0.0533 * videoHeight;
@@ -288,15 +273,15 @@ var WebVTT2DocumentFragment = function() {
     cssRegion += " writing-mode:horizontal-tb;-webkit-writing-mode:horizontal-tb;";
 
     // calculate width and height of region
-    width = regionAttributes.width * videoWidth / 100.0;
+    var width = regionAttributes.width * videoWidth / 100.0;
     cssRegion += " width:" + width + "px;";
 
-    height = regionAttributes.height * lineHeight;
+    var height = regionAttributes.height * lineHeight;
     cssRegion += " max-height:" + height + "px;";
     cssRegion += " min-height:0px;";
 
     // calculate left and top positioning of region
-    left = regionAttributes.viewportanchorX * videoWidth / 100.0 - regionAttributes.regionanchorX  * width / 100.0;
+    var left = regionAttributes.viewportanchorX * videoWidth / 100.0 - regionAttributes.regionanchorX  * width / 100.0;
     cssRegion += " left:" + left + "px;";
 
     // make it the flex container
@@ -306,14 +291,56 @@ var WebVTT2DocumentFragment = function() {
     // set the CSS on the domFragment
     domFragment.setAttribute("style", cssRegion);
 
+    return {
+      id: regionAttributes.id,
+      element: domFragment,
+      attributes: regionAttributes
+    };
+  },
+
+  getRegion = function(regionId) {
+    var i;
+    for (i = 0; i < regions.length; i++) {
+      if (regions[i].id === regionId) {
+        return regions[i];
+      }
+    }
+    return;
+  },
+
+  renderRegionCue = function(cue, videoWidth, videoHeight, parent) {
+    var lineHeight = 0,
+        fontSize = 0,
+        left = 0,
+        top = 0,
+        cssRegion = "",
+        cssCueText = "",
+        region, regionAttributes, domFragment;
+
+    // run normal layout if cue is vertical
+    if (cue.direction === "lr" || cue.direction === "rl") {
+      return getCueCSS(cue, videoWidth, videoHeight, domFragment, parent);
+    }
+
+    // get Region
+    region = getRegion(cue.region);
+    domFragment = region.element;
+    regionAttributes = region.attributes;
+    cssRegion = domFragment.getAttribute("style");
+
+    /* set defaults */
+    lineHeight = 0.0533 * videoHeight;
+    fontSize = lineHeight / 1.3;
+
     // append a child to domFragment with adequate positioning, alignment and text
     var cueText = document.createElement("div");
+    if (cue.id) {
+      cueText.setAttribute("id", cue.id);
+    }
     cueText.innerHTML = tree2HTML(cue.tree.children);
     domFragment.appendChild(cueText);
 
     // set the CSS for the child
-    var cssCueText = "";
-
     cssCueText += "font: " + fontSize + "px sans-serif;";
     cssCueText += " line-height:" + lineHeight + "px;";
     cssCueText += " color: rgba(255, 255, 255, 1);";
@@ -346,23 +373,18 @@ var WebVTT2DocumentFragment = function() {
     // reset the CSS on the domFragment
     domFragment.setAttribute("style", cssRegion);
 
-    return;
+    return domFragment;
   };
 
 
   /* convert cue to a HTML fragment */
-  that.cue2DOMFragment = function(parsedData, i, videoWidth, videoHeight, parent) {
-    var domFragment = document.createElement("div");
-    var cue = parsedData.cues[i], region, regionAttributes;
-    domFragment.setAttribute("style", "display:inline;");
-    if (cue.id) {
-      domFragment.setAttribute("id", cue.id);
-    }
+  that.cue2DOMFragment = function(cue, videoWidth, videoHeight, parent) {
+    var domFragment;
+
     if (cue.region) {
-      regionAttributes = getRegion(cue.region, parsedData.metadatas);
-      setCueRegionInnerHTML(cue, videoWidth, videoHeight, domFragment, parent, regionAttributes);
+      domFragment = renderRegionCue(cue, videoWidth, videoHeight, parent);
     } else {
-      attachCueCSSInnerHTML(cue, videoWidth, videoHeight, domFragment, parent);
+      domFragment = renderNormalCue(cue, videoWidth, videoHeight, parent);
     }
 
     return {
@@ -370,6 +392,16 @@ var WebVTT2DocumentFragment = function() {
       startTime: cue.startTime,
       endTime: cue.endTime
     };
+  };
+
+  /* set up regions for cues to paint into */
+  that.prepareRegions = function(metadatas, videoWidth, videoHeight) {
+    var i;
+    for (i = 0; i < metadatas.length; i++) {
+      if (metadatas[i].name === "Region") {
+        regions.push(setupRegion(metadatas[i].regionAttributes, videoWidth, videoHeight));
+      }
+    }
   };
 
   return that;
