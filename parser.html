@@ -16,8 +16,8 @@
   var test = function() {
     "use strict";
 
-    var video_viewport = [], output = [];
-    var parser = [], parsedData = [], dom = [], p;
+    var video_viewport = [], output;
+    var parser, parsedData, dom, p;
 
     // parse textarea
     parser = new WebVTTParser();
@@ -86,10 +86,13 @@ TO ANYWHERE
 ELSE OR BEYOND
 
 </textarea>
-<p>You need JavaScript for this service.
+<p>You need JavaScript for this service.</p>
 <ol></ol>
 <pre></pre>
 <div id="screenshots"></div>
 <p class=copyright><a href="https://bitbucket.org/annevk/webvtt">Source code</a> available under CC0.
+</p>
+<p class=copyright><a href="https://github.com/silviapfeiffer/WebVTT-with-regions">Source code changes</a> available under CC0.
+</p>
 </body>
 </html>
