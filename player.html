@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+   body { font:80% Helvetica Neue, sans-serif }
+   h1 { font-size:1.2em }
+   textarea { width:100%; height:30em }
+   .copyright { font-size:.8em; color:gray }
+   .captions_overlay { position:relative; overflow:hidden; width: 360px; height: 240px; background-color: yellow; margin: 5px;}
+  </style>
+  <script src="helpers.js"></script>
+  <script src="parser.js"></script>
+  <script src="serialize.js"></script>
+  <script src="dom_construction.js"></script>
+</head>
+<body onload="test()">
+<title>Live WebVTT Renderer</title>
+<h1>Live <a href="http://dev.w3.org/html5/webvtt/">WebVTT</a> Validator</h1>
+<textarea oninput="test()">WEBVTT
+Kind: captions
+Language: en-US
+Region: id=fred width=80% height=3 viewportanchor=10%,90% regionanchor=0%,100% scroll=up
+Region: id=bill width=50% height=4 viewportanchor=50%,50% regionanchor=50%,50%
+
+00:00:05.940 --> 00:00:10.610 line:25%
+WHEN I GET A SICK BIRD,
+
+00:00:07.040 --> 00:00:11.700 region:fred
+THAT JUST <b>STOPS</b> EVERYTHING
+
+1
+00:00:09.410 --> 00:00:12.910 region:bill position:20%
+FROM MOVING FROM MY PLACE
+
+00:00:10.610 --> 00:00:14.100 region:bill size:50%
+TO ANYWHERE 
+ELSE OR BEYOND
+
+</textarea>
+<p>
+  <div id="caption_overlay">
+    <video id="video">
+      <source src="Big_Buck_Bunny_extract.mp4" type="video/mp4">
+      <source src="Big_Buck_Bunny_extract.webm" type="video/webm">
+    </video>
+  </div>
+  <button id="play">Play</button>
+  <script>
+    var video = document.getElementById("video");
+    var parser, parsedData, dom;
+    var test = function() {
+      "use strict";
+
+      // parse textarea
+      parser = new WebVTTParser();
+      parsedData = parser.parse(document.getElementsByTagName("textarea")[0].value);
+
+      // calculate the document fragments and their styling for each cue
+      dom = new WebVTT2DocumentFragment();
+      dom.prepareRegions(parsedData.metadatas, videoWidth, videoHeight);
+    };
+
+    var play  = document.getElementById("play");
+    play.addEventListener("click", togglePlay, false);
+    function togglePlay(evt) {
+      if (video.paused == false) {
+        video.pause();
+        play.innerHTML = "play";
+      } else {
+        video.play();
+        play.innerHTML = "pause";
+      }
+    }
+
+    // get video dimensions
+    var videoWidth = video.width;
+    var videoHeight = video.height;
+    var captionsOverlay = document.getElementById("captions_overlay");
+
+    // add active cues to captionsOverlay
+    video.addEventListener("timeupdate", captionUpdate, false);
+    function captionUpdate(evt) {
+      var currentTime = video.currentTime;
+      var output, p;
+      for (i = 0; i < parsedData.cues.length; i++) {
+        output = dom.cue2DOMFragment(parsedData.cues[i], videoWidth, videoHeight, captionsOverlay);
+        if (output.domFragment) {
+//          captionsOverlay.appendChild(output.domFragment);
+        }
+      }      
+    }
+  </script>
+</p>
+<p>You need JavaScript for this service.</p>
+<p class=copyright><a href="https://github.com/silviapfeiffer/WebVTT-with-regions">Source code</a> available under CC0.
+</p>
+</body>
+</html>
