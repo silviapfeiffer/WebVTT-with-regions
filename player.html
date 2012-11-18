@@ -57,7 +57,6 @@ ELSE OR BEYOND
   var track, i;
 
   var test = function() {
-    var cue;
 
     // parse textarea
     parser = new WebVTTParser();
@@ -71,6 +70,7 @@ ELSE OR BEYOND
     // create TextTrack objects for each cue and add them to the video
     track = video.addTextTrack("metadata", "captions", "en-US");
     for (i = 0; i < parsedData.cues.length; i++) {
+      var cue;
       cue = new TextTrackCue(parsedData.cues[i].startTime, parsedData.cues[i].endTime, i);
       track.addCue(cue);
       cue.addEventListener("enter", captionShow, false);
