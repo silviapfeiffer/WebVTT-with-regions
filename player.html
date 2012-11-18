@@ -6,7 +6,8 @@
    h1 { font-size:1.2em }
    textarea { width:100%; height:30em }
    .copyright { font-size:.8em; color:gray }
-   .captions_overlay { position:relative; overflow:hidden; width: 360px; height: 240px; background-color: yellow; margin: 5px;}
+   #caption_overlay { position:relative; overflow:hidden; width: 360px; height: 240px; background-color: yellow; margin: 5px;}
+   video { width: 360px; height: 240px; }
   </style>
   <script src="helpers.js"></script>
   <script src="parser.js"></script>
@@ -15,7 +16,7 @@
 </head>
 <body onload="test()">
 <title>Live WebVTT Renderer</title>
-<h1>Live <a href="http://dev.w3.org/html5/webvtt/">WebVTT</a> Validator</h1>
+<h1>Live <a href="http://dev.w3.org/html5/webvtt/">WebVTT</a> Renderer</h1>
 <textarea oninput="test()">WEBVTT
 Kind: captions
 Language: en-US
@@ -32,10 +33,9 @@ THAT JUST <b>STOPS</b> EVERYTHING
 00:00:09.410 --> 00:00:12.910 region:bill position:20%
 FROM MOVING FROM MY PLACE
 
-00:00:10.610 --> 00:00:14.100 region:bill size:50%
+00:00:10.610 --> 00:00:14.100 region:bill
 TO ANYWHERE 
 ELSE OR BEYOND
-
 </textarea>
 <p>
   <div id="caption_overlay">
@@ -45,52 +45,69 @@ ELSE OR BEYOND
     </video>
   </div>
   <button id="play">Play</button>
-  <script>
-    var video = document.getElementById("video");
-    var parser, parsedData, dom;
-    var test = function() {
-      "use strict";
-
-      // parse textarea
-      parser = new WebVTTParser();
-      parsedData = parser.parse(document.getElementsByTagName("textarea")[0].value);
-
-      // calculate the document fragments and their styling for each cue
-      dom = new WebVTT2DocumentFragment();
-      dom.prepareRegions(parsedData.metadatas, videoWidth, videoHeight);
-    };
-
-    var play  = document.getElementById("play");
-    play.addEventListener("click", togglePlay, false);
-    function togglePlay(evt) {
-      if (video.paused == false) {
-        video.pause();
-        play.innerHTML = "play";
-      } else {
-        video.play();
-        play.innerHTML = "pause";
-      }
-    }
-
-    // get video dimensions
-    var videoWidth = video.width;
-    var videoHeight = video.height;
-    var captionsOverlay = document.getElementById("captions_overlay");
-
-    // add active cues to captionsOverlay
-    video.addEventListener("timeupdate", captionUpdate, false);
-    function captionUpdate(evt) {
-      var currentTime = video.currentTime;
-      var output, p;
-      for (i = 0; i < parsedData.cues.length; i++) {
-        output = dom.cue2DOMFragment(parsedData.cues[i], videoWidth, videoHeight, captionsOverlay);
-        if (output.domFragment) {
-//          captionsOverlay.appendChild(output.domFragment);
-        }
-      }      
-    }
-  </script>
+  <span id="currentTime"></span>
 </p>
+<script>
+  "use strict";
+
+  var video = document.getElementById("video");
+  var captionOverlay = document.getElementById("caption_overlay");
+  var parser, parsedData, dom;
+  var videoWidth = 360, videoHeight = 240;
+  var track, i;
+
+  var test = function() {
+    var cue;
+
+    // parse textarea
+    parser = new WebVTTParser();
+    parsedData = parser.parse(document.getElementsByTagName("textarea")[0].value);
+
+    // calculate the document fragments and their styling for each cue
+    dom = new WebVTT2DocumentFragment();
+    dom.prepareRegions(parsedData.metadatas, videoWidth, videoHeight);
+    dom.appendRegions(captionOverlay);
+
+    // create TextTrack objects for each cue and add them to the video
+    track = video.addTextTrack("metadata", "captions", "en-US");
+    for (i = 0; i < parsedData.cues.length; i++) {
+      cue = new TextTrackCue(parsedData.cues[i].startTime, parsedData.cues[i].endTime, i);
+      track.addCue(cue);
+      cue.addEventListener("enter", captionShow, false);
+      cue.addEventListener("exit", captionRemove, false);
+    }
+  };
+
+  function captionShow(evt) {
+    var cue;
+    cue = parsedData.cues[this.text];
+    dom.captionShow(cue, this.text, videoWidth, videoHeight, captionOverlay);
+  }
+
+  function captionRemove(evt) {
+    var cue;
+    cue = parsedData.cues[this.text];
+    dom.captionRemove(cue, this.text);
+  }
+
+  var play  = document.getElementById("play");
+  play.addEventListener("click", togglePlay, false);
+  function togglePlay(evt) {
+    if (video.paused == false) {
+      video.pause();
+      play.innerHTML = "play";
+    } else {
+      video.play();
+      play.innerHTML = "pause";
+    }
+  }
+
+  var currentTime = document.getElementById("currentTime");
+  video.addEventListener("timeupdate", updateCurrentTime, false);
+  function updateCurrentTime(evt) {
+    currentTime.innerHTML = video.currentTime.toFixed(2);
+  }
+</script>
 <p>You need JavaScript for this service.</p>
 <p class=copyright><a href="https://github.com/silviapfeiffer/WebVTT-with-regions">Source code</a> available under CC0.
 </p>

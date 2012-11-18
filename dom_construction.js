@@ -245,7 +245,10 @@ var WebVTT2DocumentFragment = function() {
     // attach the CSS
     domFragment.setAttribute("style", cssCue);
 
-    return domFragment;
+    return {
+      region: "",
+      cue: domFragment
+    };
   },
 
   setupRegion = function(regionAttributes, videoWidth, videoHeight) {
@@ -290,12 +293,24 @@ var WebVTT2DocumentFragment = function() {
 
     // set the CSS on the domFragment
     domFragment.setAttribute("style", cssRegion);
+    domFragment.setAttribute("id", "region_" + regionAttributes.id);
 
     return {
       id: regionAttributes.id,
       element: domFragment,
       attributes: regionAttributes
     };
+  },
+
+  getRegionDom = function(regionId, parent) {
+    var i;
+    var nodes = parent.childNodes;
+    for(i=0; i<nodes.length; i++) {
+      if (nodes[i].id === "region_" + regionId) {
+        return nodes[i];
+      }
+    }
+    return;
   },
 
   getRegion = function(regionId) {
@@ -319,13 +334,13 @@ var WebVTT2DocumentFragment = function() {
 
     // run normal layout if cue is vertical
     if (cue.direction === "lr" || cue.direction === "rl") {
-      return getCueCSS(cue, videoWidth, videoHeight, domFragment, parent);
+      return renderNormalCue(cue, videoWidth, videoHeight, parent);
     }
 
-    // get Region
+    // get Region & domFragment
     region = getRegion(cue.region);
-    domFragment = region.element;
     regionAttributes = region.attributes;
+    domFragment = getRegionDom(cue.region, parent);
     cssRegion = domFragment.getAttribute("style");
 
     /* set defaults */
@@ -338,7 +353,6 @@ var WebVTT2DocumentFragment = function() {
       cueText.setAttribute("id", cue.id);
     }
     cueText.innerHTML = tree2HTML(cue.tree.children);
-    domFragment.appendChild(cueText);
 
     // set the CSS for the child
     cssCueText += "font: " + fontSize + "px sans-serif;";
@@ -373,12 +387,15 @@ var WebVTT2DocumentFragment = function() {
     // reset the CSS on the domFragment
     domFragment.setAttribute("style", cssRegion);
 
-    return domFragment;
-  };
+    return {
+      region: domFragment,
+      cue: cueText
+    };
+  },
 
 
   /* convert cue to a HTML fragment */
-  that.cue2DOMFragment = function(cue, videoWidth, videoHeight, parent) {
+  cue2DOMFragment = function(cue, videoWidth, videoHeight, parent) {
     var domFragment;
 
     if (cue.region) {
@@ -388,7 +405,8 @@ var WebVTT2DocumentFragment = function() {
     }
 
     return {
-      domFragment: domFragment,
+      cue: domFragment.cue,
+      region: domFragment.region,
       startTime: cue.startTime,
       endTime: cue.endTime
     };
@@ -402,6 +420,41 @@ var WebVTT2DocumentFragment = function() {
         regions.push(setupRegion(metadatas[i].regionAttributes, videoWidth, videoHeight));
       }
     }
+  };
+
+  /* set up regions for cues to paint into */
+  that.appendRegions = function(parent) {
+    var i;
+    for (i = 0; i < regions.length; i++) {
+      parent.appendChild(regions[i].element);
+    }
+  };
+
+  /* set up regions for cues to paint into */
+  that.cloneRegions = function(parent) {
+    var i;
+    var clone;
+    for (i = 0; i < regions.length; i++) {
+      clone = regions[i].element.cloneNode(true);
+      parent.appendChild(clone);
+    }
+  };
+
+  that.captionShow = function(cue, number, videoWidth, videoHeight, parent) {
+    var output;
+    output = cue2DOMFragment(cue, videoWidth, videoHeight, parent);
+    output.cue.setAttribute("id", number+"_"+cue.startTime.toFixed(2));
+    if (!output.region) {
+      parent.appendChild(output.cue);
+    } else {
+      output.region.appendChild(output.cue);
+    }
+  };
+
+  that.captionRemove = function(cue, number) {
+    var cue, element;
+    element = document.getElementById(number+"_"+cue.startTime.toFixed(2));
+    element.parentNode.removeChild(element);
   };
 
   return that;

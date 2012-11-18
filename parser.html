@@ -16,8 +16,12 @@
   var test = function() {
     "use strict";
 
-    var video_viewport = [], output;
-    var parser, parsedData, dom, p;
+    var video_viewport = [];
+    var parser, parsedData, dom, p, cue, i;
+
+    // assume video dimensions
+    var videoWidth = 360;
+    var videoHeight = 240;
 
     // parse textarea
     parser = new WebVTTParser();
@@ -27,10 +31,6 @@
     printErrors(parsedData.errors, parsedData.time);
     printWebVTTFile(parsedData);
 
-    // assume video dimensions
-    var videoWidth = 360;
-    var videoHeight = 240;
-
     // paint every cue into a "screenshot"
     var screenshots = document.getElementById("screenshots");
     // make sure we can still do live painting updates
@@ -39,25 +39,31 @@
       screenshots.removeChild(screenshots.lastChild);
     }
 
-    // add a video viewport & per cue to the screenshots div
-    for (var i = 0; i < parsedData.cues.length; i++) {
+    // create new rendering class
+    dom = new WebVTT2DocumentFragment();
+
+    // calculate the regions and their styling
+    dom.prepareRegions(parsedData.metadatas, videoWidth, videoHeight);
+
+    // add a video viewport & regions per cue to the screenshots div
+    for (i = 0; i < parsedData.cues.length; i++) {
       video_viewport[i] = document.createElement("div");
       video_viewport[i].style.position = 'relative';
       video_viewport[i].style.overflow = 'hidden';
       video_viewport[i].setAttribute("class", "video_viewport");
       screenshots.appendChild(video_viewport[i]);
+      dom.cloneRegions(video_viewport[i]);
     }
 
     // calculate the document fragments and their styling for each cue
     // & append into viewports
-    dom = new WebVTT2DocumentFragment();
-    dom.prepareRegions(parsedData.metadatas, videoWidth, videoHeight);
     for (i = 0; i < parsedData.cues.length; i++) {
-      output = dom.cue2DOMFragment(parsedData.cues[i], videoWidth, videoHeight, video_viewport[i]);
+      cue = parsedData.cues[i];
+      dom.captionShow(cue, i, videoWidth, videoHeight, video_viewport[i]);
+
       p = document.createElement("p");
-      p.textContent = "Cue from " + output.startTime + " to " + output.endTime;
+      p.textContent = "Cue from " + cue.startTime + " to " + cue.endTime;
       screenshots.insertBefore(p, video_viewport[i]);
-      video_viewport[i].appendChild(output.domFragment);
     }
   };
   </script>
