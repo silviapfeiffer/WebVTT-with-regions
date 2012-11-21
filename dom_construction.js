@@ -286,6 +286,8 @@ var WebVTT2DocumentFragment = function() {
     // calculate left and top positioning of region
     var left = regionAttributes.viewportanchorX * videoWidth / 100.0 - regionAttributes.regionanchorX  * width / 100.0;
     cssRegion += " left:" + left + "px;";
+    var top = regionAttributes.viewportanchorY * videoHeight / 100.0 - regionAttributes.regionanchorY  * height / 100.0;
+    cssRegion += " top:" + top + "px;";
 
     // make it the flex container
     cssRegion += " display: -webkit-inline-flex;";
@@ -342,6 +344,15 @@ var WebVTT2DocumentFragment = function() {
     regionAttributes = region.attributes;
     domFragment = getRegionDom(cue.region, parent);
     cssRegion = domFragment.getAttribute("style");
+
+    // add a transition to the region if it's scroll and not the first cue
+    if (domFragment.children.length > 0) {
+      var scroll = regionAttributes.scroll;
+      if (scroll === 'up') {
+        cssRegion += " -webkit-transition-property: top;";
+        cssRegion += " -webkit-transition-duration: 0.433s;";
+      }
+    }
 
     /* set defaults */
     lineHeight = 0.0533 * videoHeight;
