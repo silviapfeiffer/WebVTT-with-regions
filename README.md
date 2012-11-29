@@ -25,4 +25,4 @@ While the parser is complete, the rendering is not fully implemented yet:
 ## Thanks
 
 The code is based on a parser and validator that Anne van Kestern implemented:
-https://bitbucket.org/annevk/webvtt
+https://github.com/annevk/webvtt
