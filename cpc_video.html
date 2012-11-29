@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <style>
@@ -26,6 +26,9 @@
   </div>
   <button id="play">Play</button>
   <span id="currentTime"></span>
+  <span>Seek:</span>
+  <input id="goTime" type="number" name="seconds"/>
+  <a href="javascript: submit()">Go</a>
 </p>
 <script>
   "use strict";
@@ -97,8 +100,14 @@
   function updateCurrentTime(evt) {
     currentTime.innerHTML = video.currentTime.toFixed(2);
   }
+
+  function submit() {
+    var goTime = document.getElementById("goTime");
+    video.currentTime = parseInt(goTime.value);
+  }
 </script>
 <p>You need JavaScript for this service and it needs to be run on a Web server.</p>
+<p>You also need a browser that supports the TextTrack API, even if its rendering is not being used.</p>
 <p class=copyright><a href="https://github.com/silviapfeiffer/WebVTT-with-regions">Source code</a> available under CC0.
 </p>
 </body>
