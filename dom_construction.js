@@ -94,6 +94,7 @@ var WebVTT2DocumentFragment = function() {
         divHeight = 0,
         cssCue = "";
 
+    // 1. create nodes
     var domFragment = document.createElement("div");
     if (cue.id) {
       domFragment.setAttribute("id", cue.id);
@@ -103,16 +104,20 @@ var WebVTT2DocumentFragment = function() {
     lineHeight = 0.0533 * videoHeight;
     fontSize = lineHeight / 1.3;
 
+    // 12. apply css
     cssCue = "position:absolute;";
     cssCue += " display:inline;";
     cssCue += " unicode-bidi:-webkit-plaintext; unicode-bidi:-moz-plaintext; unicode-bidi:plaintext;";
-    cssCue += " direction:ltr;";
     cssCue += " background:rgba(0,0,0,0.8);";
     cssCue += " word-wrap:break-word; overflow-wrap:break-word;";
     cssCue += " font: " + fontSize + "px sans-serif;";
     cssCue += " line-height:" + lineHeight + "px;";
     cssCue += " color: rgba(255, 255, 255, 1);";
 
+    // 3. determine direction (FIXME: rtl support)
+    cssCue += " direction:ltr;";
+
+    // 4. text track cue writing direction
     if (cue.direction === "lr") {
       cssCue += " writing-mode:vertical-lr;-webkit-writing-mode:vertical-lr;";
     } else if (cue.direction === "rl") {
@@ -121,6 +126,7 @@ var WebVTT2DocumentFragment = function() {
       cssCue += " writing-mode:horizontal-tb;-webkit-writing-mode:horizontal-tb;";
     }
 
+    // 5. determine maximum size for cue
     /* assuming ltr */
     if (cue.alignment === "start") {
       cssCue += " text-align:start;";
@@ -142,12 +148,21 @@ var WebVTT2DocumentFragment = function() {
       maxsize = cue.textPosition;
     }
 
+    // 6. determine cue size
     if (cue.size < maxsize) {
       size = cue.size;
     } else {
       size = maxsize;
     }
 
+    // 7. width & height of cue
+    width = size * videoWidth / 100.0;
+    cssCue += " width:" + width + "px;";
+
+    height = 'auto';
+    cssCue += " height:auto;";
+
+    // 8. determine positioning xposition
     if (cue.alignment === "start" || cue.alignment === "left") {
       xposition = cue.textPosition;
     } else if (cue.alignment === "end" || cue.alignment === "right") {
@@ -156,39 +171,7 @@ var WebVTT2DocumentFragment = function() {
       xposition = cue.textPosition - (size / 2);
     }
 
-    if (cue.snapToLines === true) {
-      yposition = 0;
-    } else {
-      yposition = cue.linePosition;
-    }
-
-    // Only apply edgemargin to non-percentage positioned cues
-    // why is there no margin in yposition dimension?
-    // https://www.w3.org/Bugs/Public/show_bug.cgi?id=19744
-    if (cue.snapToLines === true) {
-      var edgemargin = EDGEMARGIN * videoWidth / 100.0;
-      if (xposition < edgemargin && (xposition + size > edgemargin)) {
-        xposition += edgemargin;
-        size -= edgemargin;
-        rightmarginedge = 100 - edgemargin;
-        if (xposition < rightmarginedge && (xposition + size > rightmarginedge)) {
-          size -= edgemargin;
-        }
-      }
-    }
-
-    left = xposition * videoWidth / 100.0;
-    cssCue += " left:" + left + "px;";
-
-    width = size * videoWidth / 100.0;
-    cssCue += " width:" + width + "px;";
-
-    height = 'auto';
-    cssCue += " height:auto;";
-
-    top = yposition * videoHeight / 100.0;
-
-    // compute line position
+    // calculate computed line position
     if (isNumber(cue.linePosition)) {
       linePosition = cue.linePosition;
       if (cue.snapToLines === false) {
@@ -200,14 +183,45 @@ var WebVTT2DocumentFragment = function() {
       if (cue.snapToLines === false) {
         linePosition = 100;
       } else {
+        // FIXME: missing adaptation of line position based on
+        // number of active tracks at one time
         linePosition = -1;
       }
     }
 
+    // 9. calculate yposition
+    if (cue.snapToLines === true) {
+      yposition = 0;
+    } else {
+      yposition = linePosition;
+    }
+
+    // 10. Only apply edgemargin to non-percentage positioned cues
+    // why is there no margin in yposition dimension?
+    // https://www.w3.org/Bugs/Public/show_bug.cgi?id=19744
+    if (cue.snapToLines === true) {
+      var edgemargin = EDGEMARGIN * videoWidth / 100.0;
+      if (xposition < edgemargin && (xposition + size > edgemargin)) {
+        xposition += edgemargin;
+        size -= edgemargin;
+      }
+      rightmarginedge = 100 - edgemargin;
+      if (xposition < rightmarginedge && (xposition + size > rightmarginedge)) {
+        size -= edgemargin;
+      }
+    }
+
+    // 11. set left and top
+    left = xposition * videoWidth / 100.0;
+    cssCue += " left:" + left + "px;";
+
+    top = yposition * videoHeight / 100.0;
+
     // attach the innerHTML so we can measure the height for adjustments.
     domFragment.innerHTML = tree2HTML(cue.tree.children);
+    divHeight = getTextHeight(domFragment, parent, cssCue);
 
-    /* adjust positions */
+    // 14. adjust positions of boxes
     if (cue.snapToLines === true) {
       margin = EDGEMARGIN * videoHeight / 100.0;
       fullDimension = videoHeight;
@@ -225,7 +239,6 @@ var WebVTT2DocumentFragment = function() {
 
       // FIXME: adjustment not according to spec
       // calculate how much of the cue is outside the video viewport
-      divHeight = getTextHeight(domFragment, parent, cssCue);
       var score = maxdimension - top - divHeight;
       while (top > 0 && score < 0 && top < maxdimension) {
         top += step;
@@ -235,9 +248,12 @@ var WebVTT2DocumentFragment = function() {
     } else {
       // Requested to fix relative positioning:
       // https://www.w3.org/Bugs/Public/show_bug.cgi?id=18501
-      // best by not doing the x% / y% adjustment.
-      //x = cue.textPosition;
-      //y = linePosition;
+      var x = cue.textPosition;
+      var boxPositionX = x * width / 100.0;
+      left = left - boxPositionX;
+      var y = linePosition;
+      var boxPositionY = y * divHeight / 100.0;
+      top = top - boxPositionY;
     }
 
     cssCue += " top:" + top + "px;";
