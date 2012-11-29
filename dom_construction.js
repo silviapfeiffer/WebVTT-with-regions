@@ -1,6 +1,6 @@
 "use strict";
 
-var EDGEMARGIN = 1.0; /* % */
+var EDGEMARGIN = 1.5; /* % */
 
 var WebVTT2DocumentFragment = function() {
   var that = this,
