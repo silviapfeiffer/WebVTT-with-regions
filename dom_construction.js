@@ -155,13 +155,6 @@ var WebVTT2DocumentFragment = function() {
       size = maxsize;
     }
 
-    // 7. width & height of cue
-    width = size * videoWidth / 100.0;
-    cssCue += " width:" + width + "px;";
-
-    height = 'auto';
-    cssCue += " height:auto;";
-
     // 8. determine positioning xposition
     if (cue.alignment === "start" || cue.alignment === "left") {
       xposition = cue.textPosition;
@@ -210,6 +203,13 @@ var WebVTT2DocumentFragment = function() {
         size -= edgemargin;
       }
     }
+
+    // 7. width & height of cue
+    width = size * videoWidth / 100.0;
+    cssCue += " width:" + width + "px;";
+
+    height = 'auto';
+    cssCue += " height:auto;";
 
     // 11. set left and top
     left = xposition * videoWidth / 100.0;
