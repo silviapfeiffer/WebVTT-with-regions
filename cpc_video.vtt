@@ -1,5 +1,5 @@
 WEBVTT
-Region: id=r1 width=60% height=4 viewportanchor=50%,100% regionanchor=50%,100% scroll=up
+Region: id=r1 width=60% height=4 viewportanchor=50%,90% regionanchor=50%,100% scroll=up
 
 0
 00:00:00.967 --> 00:00:06.873
@@ -112,27 +112,27 @@ Captions can appear
 in lower case,
 
 24
-00:01:00.827 --> 00:01:02.528 size:63% position:50% line:100%
+00:01:00.827 --> 00:01:02.528 size:63% position:50% line:90%
 and also in Spanish:
 
 25
-00:01:02.528 --> 00:01:06.399 align:start size:63% position:0% line:79%
+00:01:02.528 --> 00:01:06.399 align:start size:40% position:5% line:79%
 ¿Dónde está el niño?
 
 26
-00:01:02.528 --> 00:01:06.399 align:start size:50% position:50% line:100%
+00:01:02.528 --> 00:01:06.399 align:end size:40% position:95% line:90%
 Está en la casa.
 
 27
-00:01:06.399 --> 00:01:07.600 size:44% position:50% line:100%
+00:01:06.399 --> 00:01:07.600 size:44% position:50% line:90%
 And in French:
 
 28
-00:01:07.600 --> 00:01:11.437 align:start size:66% position:0% line:79%
+00:01:07.600 --> 00:01:11.437 align:start size:40% position:5% line:79%
 Parlez-vous Français?
 
 29
-00:01:07.600 --> 00:01:11.437 align:start size:78% position:22% line:100%
+00:01:07.600 --> 00:01:11.437 align:end size:40% position:95% line:90%
 Répétez, s'il vous plaît.
 
 30
