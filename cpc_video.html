@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+   body { font:80% Helvetica Neue, sans-serif }
+   h1 { font-size:1.2em }
+   .copyright { font-size:.8em; color:gray }
+   #caption_overlay { position:relative; overflow:hidden; width: 360px; height: 240px; background-color: yellow; margin: 0px; }
+   video { width: 360px; height: 240px; }
+  </style>
+  <script src="helpers.js"></script>
+  <script src="parser.js"></script>
+  <script src="serialize.js"></script>
+  <script src="dom_construction.js"></script>
+</head>
+<body onload="test()">
+<title>CPC Caption Video Rendering</title>
+<h1>CPC Caption Video Using <a href="http://dev.w3.org/html5/webvtt/">WebVTT</a></h1>
+<p>
+  <div id="caption_overlay">
+    <video id="video">
+      <source src="cpc_video.mp4" type="video/mp4">
+      <source src="cpc_video.webm" type="video/webm">
+    </video>
+  </div>
+  <button id="play">Play</button>
+  <span id="currentTime"></span>
+</p>
+<script>
+  "use strict";
+
+  var video = document.getElementById("video");
+  var captionOverlay = document.getElementById("caption_overlay");
+  var parser, parsedData, dom;
+  var videoWidth = 360, videoHeight = 240;
+  var track, i;
+
+  var test = function() {
+
+    // download the caption file
+    var xhReq = new XMLHttpRequest();
+    xhReq.open("GET", "cpc_video.vtt", true);
+    xhReq.onreadystatechange = onResponse;
+    xhReq.send(null);
+    function onResponse() {
+      if (xhReq.readyState != 4)  { return; }
+      var serverResponse = xhReq.responseText;
+
+      // parse vtt file
+      parser = new WebVTTParser();
+      parsedData = parser.parse(serverResponse);
+
+      // calculate the document fragments and their styling for each cue
+      dom = new WebVTT2DocumentFragment();
+      dom.prepareRegions(parsedData.metadatas, videoWidth, videoHeight);
+      dom.appendRegions(captionOverlay);
+
+      // create TextTrack objects for each cue and add them to the video
+      track = video.addTextTrack("metadata", "captions", "en-US");
+      for (i = 0; i < parsedData.cues.length; i++) {
+        var cue;
+        cue = new TextTrackCue(parsedData.cues[i].startTime, parsedData.cues[i].endTime, i);
+        track.addCue(cue);
+        cue.addEventListener("enter", captionShow, false);
+        cue.addEventListener("exit", captionRemove, false);
+      }
+    }
+  };
+
+  function captionShow(evt) {
+    var cue;
+    cue = parsedData.cues[this.text];
+    dom.captionShow(cue, this.text, videoWidth, videoHeight, captionOverlay);
+  }
+
+  function captionRemove(evt) {
+    var cue;
+    cue = parsedData.cues[this.text];
+    dom.captionRemove(cue, this.text);
+  }
+
+  var play  = document.getElementById("play");
+  play.addEventListener("click", togglePlay, false);
+  function togglePlay(evt) {
+    if (video.paused == false) {
+      video.pause();
+      play.innerHTML = "play";
+    } else {
+      video.play();
+      play.innerHTML = "pause";
+    }
+  }
+
+  var currentTime = document.getElementById("currentTime");
+  video.addEventListener("timeupdate", updateCurrentTime, false);
+  function updateCurrentTime(evt) {
+    currentTime.innerHTML = video.currentTime.toFixed(2);
+  }
+</script>
+<p>You need JavaScript for this service and it needs to be run on a Web server.</p>
+<p class=copyright><a href="https://github.com/silviapfeiffer/WebVTT-with-regions">Source code</a> available under CC0.
+</p>
+</body>
+</html>
