@@ -407,7 +407,7 @@ var WebVTT2DocumentFragment = function() {
 
     // adjust top position of region from height of region
     var regionHeight = getTextHeight(domFragment, parent, cssRegion);
-
+    regionHeight += cueHeight;
     top = regionAttributes.viewportanchorY * videoHeight / 100.0 - regionAttributes.regionanchorY  * regionHeight / 100.0;
     cssRegion += " top:" + top + "px;";
 
