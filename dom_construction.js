@@ -379,13 +379,15 @@ var WebVTT2DocumentFragment = function() {
     if (cue.id) {
       cueText.setAttribute("id", cue.id);
     }
-    cueText.innerHTML = tree2HTML(cue.tree.children);
+    var cueTextContent = document.createElement("span");
+    cueTextContent.innerHTML = tree2HTML(cue.tree.children);
+    cueTextContent.setAttribute("class", regionAttributes.id);
+    cueText.appendChild(cueTextContent);
 
     // set the CSS for the child
     cssCueText += "font: " + fontSize + "px sans-serif;";
     cssCueText += " line-height:" + lineHeight + "px;";
     cssCueText += " color: rgba(255, 255, 255, 1);";
-    cssCueText += " width: 100%;"
 
     if (cue.alignment === "middle") {
       cssCueText += " text-align:center;";
