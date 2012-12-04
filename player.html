@@ -1,3 +1,6 @@
+<!-- Any copyright is dedicated to the Public Domain.
+     http://creativecommons.org/publicdomain/zero/1.0/
+-->
 <!DOCTYPE html>
 <html>
 <head>
@@ -58,6 +61,9 @@ ON<00:00:56.822>E <00:00:56.855>LI<00:00:56.889>NE<00:00:56.922> A<00:00:56.955>
   </div>
   <button id="play">Play</button>
   <span id="currentTime"></span>
+  <span>Seek:</span>
+  <input id="goTime" type="number" name="seconds"/>
+  <a href="javascript: submit()">Go</a>
 </p>
 <script>
   "use strict";
@@ -118,6 +124,11 @@ ON<00:00:56.822>E <00:00:56.855>LI<00:00:56.889>NE<00:00:56.922> A<00:00:56.955>
   video.addEventListener("timeupdate", updateCurrentTime, false);
   function updateCurrentTime(evt) {
     currentTime.innerHTML = video.currentTime.toFixed(2);
+  }
+
+  function submit() {
+    var goTime = document.getElementById("goTime");
+    video.currentTime = parseInt(goTime.value);
   }
 </script>
 <p>You need JavaScript for this service.</p>
