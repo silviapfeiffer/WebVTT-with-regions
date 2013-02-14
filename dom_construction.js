@@ -365,7 +365,7 @@ var WebVTT2DocumentFragment = function() {
     cssRegion = domFragment.getAttribute("style");
 
     // add a transition to the region if it's scroll and not the first cue
-    if (domFragment.children.length > 0) {
+    if (domFragment.children.length === 1) {
       var scroll = regionAttributes.scroll;
       if (scroll === 'up') {
         cssRegion += " -webkit-transition-property: top;";
@@ -391,6 +391,7 @@ var WebVTT2DocumentFragment = function() {
     cssCueText += "font: " + fontSize + "px sans-serif;";
     cssCueText += " line-height:" + lineHeight + "px;";
     cssCueText += " color: rgba(255, 255, 255, 1);";
+//    cssCueText += " -webkit-transition-duration: 0.433s;";
 
     if (cue.alignment === "middle") {
       cssCueText += " text-align:center;";
@@ -398,15 +399,16 @@ var WebVTT2DocumentFragment = function() {
       cssCueText += " text-align:" + cue.alignment + ";";
     }
 
-    if (isNumber(cue.linePosition)) {
-      left = cue.linePosition * videoWidth / 100.0;
+    // ignore text position, since we're not positioning relative or absolute
+    if (isNumber(cue.textPosition)) {
+      left = cue.textPosition * (regionAttributes.width * videoWidth / 100.0) / 100.0;
       cssCueText += " left:" + left + "px;";
     }
 
     // get number of lines in cue to calculate height
     var cueHeight = getTextHeight(cueText, parent, cssCueText);
-    var lines = cueHeight/12;
-    cssCueText += " height:" + lines * lineHeight + "px;";
+//    var lines = cueHeight/12;
+//    cssCueText += " height:" + lines * lineHeight + "px;";
 
     cueText.setAttribute("style", cssCueText);
 
