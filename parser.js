@@ -805,8 +805,7 @@ var WebVTTCueTextParser = function(line, errorHandler, mode) {
         }
       } else if (state === "escape") {
         if (c === "&") {
-          // XXX is this non-conforming?
-          //err("Incorrect escape.");
+          err("Incorrect escape.");
           result += buffer;
           buffer = c;
         } else if (/[ampltg]/.test(c)) {
