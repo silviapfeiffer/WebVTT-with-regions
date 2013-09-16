@@ -8,7 +8,7 @@
 var WebVTTParser = function() {
   var that = this;
 
-  that.parse = function(input) {
+  that.parse = function(input, mode) {
     //XXX need global search and replace for \0
     //XXX skyp byte order mark
     var NEWLINE = /\r\n|\r|\n/,
@@ -21,9 +21,9 @@ var WebVTTParser = function() {
     errors = [],
     err = function (message, col) {
       errors.push({
-        message:message,
-        line:linePos+1,
-        col:col
+        message: message,
+        line:    linePos+1,
+        col:     col
       });
     };
 
@@ -89,8 +89,26 @@ var WebVTTParser = function() {
         tree:null
       };
 
+      var parseTimings = true;
+
       if (line.indexOf("-->") === -1) {
         cue.id = line;
+
+
+        /* COMMENTS
+           Not part of the specification's parser as these would just be ignored. However,
+           we want them to be conforming and not get "Cue identifier cannot be standalone".
+         */
+        if(/^NOTE($|[ \t])/.test(cue.id)) { // .startsWith fails in Chrome
+          line = lines[++linePos];
+          while(line !== "" && line !== undefined) {
+            if(line.indexOf("-->") != -1) {
+              err("Cannot have timestamp in a comment.");
+            }
+            line = lines[++linePos];
+          }
+          continue;
+        }
 
         line = lines[++linePos];
 
@@ -99,15 +117,20 @@ var WebVTTParser = function() {
           continue;
         }
 
+        if(line.indexOf("-->") === -1) {
+          parseTimings = false;
+          err("Cue identifier needs to be followed by timestamp.");
+        }
       }
+
       /* TIMINGS */
       alreadyCollected = false;
       var timings = new WebVTTCueTimingsAndSettingsParser(line, err),
-      previousCueStart = 0;
+      var previousCueStart = 0;
       if (cues.length > 0) {
         previousCueStart = cues[cues.length-1].startTime;
       }
-      if (!timings.parse(cue, previousCueStart)) {
+      if(parseTimings && !timings.parse(cue, previousCueStart)) {
         /* BAD CUE */
 
         cue = null;
@@ -140,7 +163,7 @@ var WebVTTParser = function() {
       }
 
       /* CUE TEXT PROCESSING */
-      var cuetextparser = new WebVTTCueTextParser(cue.text, err);
+      var cuetextparser = new WebVTTCueTextParser(cue.text, err, mode);
       cue.tree = cuetextparser.parse(cue.startTime, cue.endTime);
       cues.push(cue);
     }
@@ -161,10 +184,10 @@ var WebVTTParser = function() {
     });
     /* END */
     return {
-      cues:cues,
-      metadatas:metadatas,
-      errors:errors,
-      time:Date.now()-startTime
+      cues:      cues,
+      metadatas: metadatas,
+      errors:    errors,
+      time:      Date.now()-startTime
     };
   };
 
@@ -344,6 +367,7 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
   var that = this,
   SPACE = /[\u0020\t\f]/,
   NOSPACE = /[^\u0020\t\f]/,
+  line = line,
   pos = 0,
   err = function(message) {
     errorHandler(message, pos+1);
@@ -450,7 +474,8 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
   parseSettings = function (input, cue) {
     var settings = input.split(SPACE),
         settingsLength = settings.length,
-        seen = [], i,
+        seen = [],
+        i,
         settingsElement, index, setting, value, lastValueIndex;
 
     for (i = 0; i < settingsLength; i++) {
@@ -537,8 +562,9 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
           break;
 
         case ("align"): // alignment
-          if (value !== "start" && value !== "middle" && value !== "end" && value !== "left" && value !== "right") {
-            err("Alignment can only be set to 'start', 'middle', 'end', 'left' or 'right'.");
+          var alignValues = ["start", "middle", "end", "left", "right"];
+          if (alignValues.indexOf(value) == -1) {
+            err("Alignment can only be set to one of " + alignValues.join(", ") + ".");
             continue;
           }
           cue.alignment = value;
@@ -629,8 +655,9 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
   return that;
 };
 
-var WebVTTCueTextParser = function(line, errorHandler) {
+var WebVTTCueTextParser = function(line, errorHandler, mode) {
   var that = this,
+    line = line,
     pos = 0,
 
     err = function(message) {
@@ -646,11 +673,11 @@ var WebVTTCueTextParser = function(line, errorHandler) {
 
     attach = function (token) {
       current.children.push({
-        type:"object",
-        name:token[1],
-        classes:token[2],
-        children:[],
-        parent:current
+        type:     "object",
+        name:     token[1],
+        classes:  token[2],
+        children: [],
+        parent:   current
       });
       current = current.children[current.children.length-1];
     },
@@ -670,11 +697,14 @@ var WebVTTCueTextParser = function(line, errorHandler) {
       var token = nextToken();
       if (token[0] === "text") {
         current.children.push({
-          type:"text",
-          value:token[1],
-          parent:current
+          type:   "text",
+          value:  token[1],
+          parent: current
         });
       } else if (token[0] === "start tag") {
+        if (mode === "chapters") {
+          err("Start tags not allowed in chapter title text.");
+        }
         var name = token[1];
         if (name !== "v" && token[3] !== "") {
           err("Only <v> can have an annotation.");
@@ -698,10 +728,16 @@ var WebVTTCueTextParser = function(line, errorHandler) {
           if (!token[3]) {
             err("<v> requires an annotation.");
           }
+        } else if(name == "lang") {
+          attach(token);
+          current.value = token[3]; // language
         } else {
           err("Incorrect start tag.");
         }
       } else if (token[0] === "end tag") {
+        if (mode == "chapters") {
+          err("End tags not allowed in chapter title text.");
+        }
         // XXX check <ruby> content
         if (token[1] === current.name) {
           current = current.parent;
@@ -711,6 +747,9 @@ var WebVTTCueTextParser = function(line, errorHandler) {
           err("Incorrect end tag.");
         }
       } else if (token[0] === "timestamp") {
+        if (mode == "chapters") {
+          err("Timestamps not allowed in chapter title text.");
+        }
         var timings = new WebVTTCueTimingsAndSettingsParser(token[1], err),
             timestamp = timings.parseTimestamp();
         if (timestamp !== undefined) {
@@ -721,9 +760,9 @@ var WebVTTCueTextParser = function(line, errorHandler) {
             err("Timestamp tag must be greater than any previous timestamp tag.");
           }
           current.children.push({
-            type:"timestamp",
-            value:timestamp,
-            parent:current
+            type:   "timestamp",
+            value:  timestamp,
+            parent: current
           });
           timestamps.push(timestamp);
         }
@@ -745,10 +784,10 @@ var WebVTTCueTextParser = function(line, errorHandler) {
         classes = [],
 
         checkItem = function(item) {
-          if (item) {
-            return true;
-          }
-        };
+                  if (item) {
+                    return true;
+                  }
+                };
 
     while(line[pos-1] !== undefined || pos === 0) {
       var c = line[pos];
@@ -766,6 +805,7 @@ var WebVTTCueTextParser = function(line, errorHandler) {
       } else if (state === "escape") {
         if (c === "&") {
           // XXX is this non-conforming?
+          //err("Incorrect escape.");
           result += buffer;
           buffer = c;
         } else if (/[ampltg]/.test(c)) {
@@ -777,6 +817,12 @@ var WebVTTCueTextParser = function(line, errorHandler) {
             result += "<";
           } else if (buffer === "&gt") {
             result += ">";
+          } else if(buffer == "&lrm") {
+            result += "\u200e";
+          } else if(buffer == "&rlm") {
+            result += "\u200f";
+          } else if(buffer == "&nbsp") {
+            result += "\u00A0";
           } else {
             err("Incorrect escape.");
             result += buffer + ";";

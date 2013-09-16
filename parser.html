@@ -5,6 +5,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <title>Live WebVTT Validator</title>
   <style>
    body { font:80% Helvetica Neue, sans-serif }
    h1 { font-size:1.2em }
@@ -29,7 +30,7 @@
 
     // parse textarea
     parser = new WebVTTParser();
-    parsedData = parser.parse(document.getElementsByTagName("textarea")[0].value);
+    parsedData = parser.parse(document.getElementsByTagName("textarea")[0].value, document.getElementById("kind").value);
 
     // print errors and WebVTT file as parsed
     printErrors(parsedData.errors, parsedData.time);
@@ -70,6 +71,8 @@
       screenshots.insertBefore(p, video_viewport[i]);
     }
   };
+  onhashchange = function(e) { debug(e.newURL) };
+  debug(location.href);
   </script>
 </head>
 <body onload="test()">
@@ -96,13 +99,20 @@ TO ANYWHERE
 ELSE OR BEYOND
 
 </textarea>
-<p>You need JavaScript for this service.</p>
+<p>Kind:
+  <select id="kind" onchange="test();">
+    <option>subtitles/captions/descriptions</option>
+    <option>metadata</option>
+    <option>chapters</option>
+  </select>
+</p>
+<p id="status">You need JavaScript for this service.</p>
 <ol></ol>
 <pre></pre>
 <div id="screenshots"></div>
-<p class=copyright><a href="https://github.com/annevk/webvtt">Source code for parser</a> available under CC0.
+<p class=copyright><a href="https://github.com/annevk/webvtt">Source code for parser</a> available under <a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0</a>.
 </p>
-<p class=copyright><a href="https://github.com/silviapfeiffer/WebVTT-with-regions">Source code changes</a> available under CC0.
+<p class=copyright><a href="https://github.com/silviapfeiffer/WebVTT-with-regions">Source code changes</a> available under <a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0</a>.
 </p>
 </body>
 </html>

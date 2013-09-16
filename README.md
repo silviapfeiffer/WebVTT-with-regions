@@ -1,6 +1,6 @@
 # WebVTT Parser with Regions
 
-This code is an experimental implementation of CEA 708 caption support into WebVTT.
+This code is an experimental implementation of CEA 708 caption feature support into WebVTT.
 
 It follows the specification at http://www.w3.org/community/texttracks/wiki/MultiCueBox .
 
@@ -26,3 +26,11 @@ While the parser is complete, the rendering is not fully implemented yet:
 
 The code is based on a parser and validator that Anne van Kestern implemented:
 https://github.com/annevk/webvtt
+=======
+WebVTT parser and validator
+===========================
+
+Relevant links:
+
+* [Live WebVTT Validator](http://quuz.org/webvtt/).
+* [WebVTT Standard](http://dev.w3.org/html5/webvtt/)
