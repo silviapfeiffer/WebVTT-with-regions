@@ -808,7 +808,7 @@ var WebVTTCueTextParser = function(line, errorHandler, mode) {
           err("Incorrect escape.");
           result += buffer;
           buffer = c;
-        } else if (/[ampltg]/.test(c)) {
+        } else if (/[abglmnsprt]/.test(c)) {
           buffer += c;
         } else if (c === ";") {
           if (buffer === "&amp") {
