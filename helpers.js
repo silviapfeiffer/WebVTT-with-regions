@@ -14,7 +14,7 @@ var printErrors = function (errors, duration) {
       p.textContent = "Almost there!";
     }
     else if (errorsLength < 5) {
-      p.textContent = "Just fix these mistakes my man.";
+      p.textContent = "Just a few more mistakes.";
     }
     else {
       p.textContent = "You are hopeless, RTFS.";
