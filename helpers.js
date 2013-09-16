@@ -5,7 +5,7 @@
 
 var printErrors = function (errors, duration) {
   var ol = document.getElementsByTagName("ol")[0],
-    p = document.getElementsById("status"),
+    p = document.getElementById("status"),
     errorsLength = errors.length;
     ol.textContent = "";
 
@@ -39,8 +39,8 @@ var printErrors = function (errors, duration) {
 };
 
 var debug = function (url) {
-  var hmm = url.slice(url.indexOf("#")) == "#debug"
-  document.getElementsByTagName("pre")[0].hidden = hmm ? false : true
+  var hmm = url.slice(url.indexOf("#")) == "#debug";
+  document.getElementsByTagName("pre")[0].hidden = hmm ? false : true;
 };
 
 var printWebVTTFile = function (r) {

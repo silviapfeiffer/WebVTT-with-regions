@@ -72,12 +72,12 @@
     }
   };
   onhashchange = function(e) { debug(e.newURL) };
-  debug(location.href);
   </script>
 </head>
-<body onload="test()">
+<body onload="test();debug(location.href);">
 <title>Live WebVTT Validator</title>
 <h1>Live <a href="http://dev.w3.org/html5/webvtt/">WebVTT</a> Validator</h1>
+<p>Add #debug to the URL to display the parsed WebVTT file.</p>
 <textarea oninput="test()">WEBVTT
 Kind: captions
 Language: en-US
@@ -94,7 +94,7 @@ THAT JUST <b>STOPS</b> EVERYTHING
 00:00:09.410 --> 00:00:12.910 region:bill position:20%
 FROM MOVING FROM MY PLACE
 
-00:00:10.610 --> 00:00:14.100 region:bill size:50%
+00:00:10.610 --> 00:00:14.100 size:50%
 TO ANYWHERE 
 ELSE OR BEYOND
 
@@ -108,7 +108,7 @@ ELSE OR BEYOND
 </p>
 <p id="status">You need JavaScript for this service.</p>
 <ol></ol>
-<pre></pre>
+<pre hidden></pre>
 <div id="screenshots"></div>
 <p class=copyright><a href="https://github.com/annevk/webvtt">Source code for parser</a> available under <a href="http://creativecommons.org/publicdomain/zero/1.0/">CC0</a>.
 </p>

@@ -126,7 +126,7 @@ var WebVTTParser = function() {
       /* TIMINGS */
       alreadyCollected = false;
       var timings = new WebVTTCueTimingsAndSettingsParser(line, err),
-      var previousCueStart = 0;
+          previousCueStart = 0;
       if (cues.length > 0) {
         previousCueStart = cues[cues.length-1].startTime;
       }
@@ -707,7 +707,7 @@ var WebVTTCueTextParser = function(line, errorHandler, mode) {
           err("Start tags not allowed in chapter title text.");
         }
         var name = token[1];
-        if (name != "v" && name != "lang" && token[3] != "")) {
+        if (name !== "v" && name !== "lang" && token[3] !== "") {
           err("Only <v> and <lang> can have an annotation.");
         }
         if (
