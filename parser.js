@@ -661,6 +661,7 @@ var WebVTTCueTextParser = function(line, errorHandler, mode) {
     pos = 0,
 
     err = function(message) {
+      if (mode == "metadata") return;
       errorHandler(message, pos+1);
     };
 
@@ -706,8 +707,8 @@ var WebVTTCueTextParser = function(line, errorHandler, mode) {
           err("Start tags not allowed in chapter title text.");
         }
         var name = token[1];
-        if (name !== "v" && token[3] !== "") {
-          err("Only <v> can have an annotation.");
+        if (name != "v" && name != "lang" && token[3] != "")) {
+          err("Only <v> and <lang> can have an annotation.");
         }
         if (
           name === "c" ||
@@ -754,10 +755,10 @@ var WebVTTCueTextParser = function(line, errorHandler, mode) {
             timestamp = timings.parseTimestamp();
         if (timestamp !== undefined) {
           if (timestamp <= cueStart || timestamp >= cueEnd) {
-            err("Timestamp tag must be between start timestamp and end timestamp.");
+            err("Timestamp must be between start timestamp and end timestamp.");
           }
           if (timestamps.length > 0 && timestamps[timestamps.length-1] >= timestamp) {
-            err("Timestamp tag must be greater than any previous timestamp tag.");
+            err("Timestamp must be greater than any previous timestamp tag.");
           }
           current.children.push({
             type:   "timestamp",
