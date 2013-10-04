@@ -10,7 +10,6 @@ function WebVTTParser() {
 
   that.parse = function(input, mode) {
     //XXX need global search and replace for \0
-    //XXX skyp byte order mark
     var NEWLINE = /\r\n|\r|\n/,
     startTime = Date.now(),
     linePos = 0,
@@ -28,14 +27,24 @@ function WebVTTParser() {
     };
 
     var line = lines[linePos],
-    lineLength = line.length;
+    lineLength = line.length,
+    signature = "WEBVTT",
+    bom = 0,
+    signature_length = signature.length;
+
+
+    /* Byte order mark */
+    if (line[0] === "\ufeff") {
+      bom = 1;
+      signature_length += 1;
+    }
     /* SIGNATURE */
     if (
-      lineLength < 6 ||
-      line.indexOf("WEBVTT") !== 0 ||
-      lineLength > 6 &&
-      line[6] !== " " &&
-      line[6] !== "\t"
+      lineLength < signature_length ||
+      line.indexOf(signature) !== 0+bom ||
+      lineLength > signature_length &&
+      line[signature_length] !== " " &&
+      line[signature_length] !== "\t"
     ) {
       err("No valid signature. (File needs to start with \"WEBVTT\".)");
     }
