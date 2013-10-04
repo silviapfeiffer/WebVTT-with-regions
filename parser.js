@@ -5,7 +5,7 @@
 
 "use strict";
 
-var WebVTTParser = function() {
+function WebVTTParser() {
   var that = this;
 
   that.parse = function(input, mode) {
@@ -49,6 +49,9 @@ var WebVTTParser = function() {
         if ((lines[linePos+1] && lines[linePos+1].indexOf("-->") !== -1 )||
         (lines[linePos+2] && lines[linePos+2].indexOf("-->") !== -1)) {
           break;
+        } else {
+          line = lines[++linePos];
+          continue;
         }
       }
 
@@ -65,6 +68,7 @@ var WebVTTParser = function() {
     /* CUE LOOP */
     while(line !== undefined) {
       var cue;
+
       while(!alreadyCollected && line === "") {
         line = lines[++linePos];
       }
@@ -655,7 +659,7 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
   return that;
 };
 
-var WebVTTCueTextParser = function(line, errorHandler, mode) {
+function WebVTTCueTextParser(line, errorHandler, mode) {
   var that = this,
     line = line,
     pos = 0,
@@ -931,3 +935,8 @@ var WebVTTCueTextParser = function(line, errorHandler, mode) {
 
   return that;
 };
+
+if (typeof module !== "undefined") {
+  module.exports.WebVTTParser = WebVTTParser;
+  module.exports.WebVTTCueTextParser = WebVTTCueTextParser;
+}
