@@ -14,6 +14,16 @@ Load parser.html in your browser.
 
 You can edit the WebVTT file live and it will immediately update the parsed output and the rendering.
 
+Load player.html in your browser.
+* it contains a demo WebVTT file
+* it does the parsing, DOM construction, and rendering
+* it outputs an actual video element with rendered captions on top
+
+## Running the test suite
+
+```
+node ./validate.js -v
+```
 
 ## Known bugs
 
