@@ -102,7 +102,9 @@ function WebVTTParser() {
         direction:"horizontal",
         snapToLines:true,
         linePosition:"auto",
+        lineAlign:"start",
         textPosition:50, /* % */
+        positionAlign:"middle",
         size:100, /* % */
         alignment:"middle",
         region:"",
@@ -497,7 +499,8 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
         settingsLength = settings.length,
         seen = [],
         i,
-        settingsElement, index, setting, value, lastValueIndex;
+        settingsElement, index, setting, value, lastValueIndex,
+        positionSet, positionAlignSet, linePos, lineAlign, colPos, colAlign;
 
     for (i = 0; i < settingsLength; i++) {
       settingsElement = settings[i];
@@ -510,6 +513,8 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
       setting = settingsElement.slice(0, index);
       value = settingsElement.slice(index + 1);
       lastValueIndex = value.length - 1;
+      positionSet = false;
+      positionAlignSet = false;
 
       if (seen.indexOf(setting) !== -1) {
         err("Duplicate setting.");
@@ -532,42 +537,72 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
           break;
 
         case ("line"): // line position
-          if (!/\d/.test(value)) {
+          // separate line position from line alignment
+          if (value.indexOf(",") !== -1) {
+            linePos = value.slice(0, value.indexOf(","));
+            lineAlign = value.slice(value.indexOf(",") + 1);
+            lastValueIndex = linePos.length - 1;
+          } else {
+            linePos = value;
+            lineAlign = "";
+          }
+          if (!/\d/.test(linePos)) {
             err("Line position takes a number or percentage.");
             continue;
           }
-          if (value.indexOf("-", 1) !== -1) {
+          if (linePos.indexOf("-", 1) !== -1) {
             err("Line position can only have '-' at the start.");
             continue;
           }
-          if (value.indexOf("%") !== -1 && value.indexOf("%") !== lastValueIndex) {
+          if (linePos.indexOf("%") !== -1 && linePos.indexOf("%") !== lastValueIndex) {
             err("Line position can only have '%' at the end.");
             continue;
           }
-          if (value[0] === "-" && value[lastValueIndex] === "%") {
+          if (linePos[0] === "-" && linePos[lastValueIndex] === "%") {
             err("Line position cannot be a negative percentage.");
             continue;
           }
-          if (value[lastValueIndex] === "%") {
+          if (linePos[lastValueIndex] === "%") {
             if (parseInt(value, 10) > 100) {
               err("Line position cannot be >100%.");
               continue;
             }
             cue.snapToLines = false;
           }
-          cue.linePosition = parseInt(value, 10);
+          cue.linePosition = parseInt(linePos, 10);
+          if (lineAlign == "start" || lineAlign == "end" || lineAlign == "middle") {
+            cue.lineAlign = lineAlign;
+          }
           break;
 
         case ("position"): // text position
-          if (value[lastValueIndex] !== "%") {
-            err("Text position must be a percentage:" + value);
+          // separate text position from text position alignment
+          if (value.indexOf(",") !== -1) {
+            colPos = value.slice(0, value.indexOf(","));
+            colAlign = value.slice(value.indexOf(",") + 1);
+            lastValueIndex = colPos.length - 1;
+          } else {
+            colPos = value;
+            colAlign = "";
+          }
+          if (!/\d/.test(colPos)) {
+            err("Text position takes a number.");
             continue;
           }
-          if (parseInt(value, 10) > 100) {
+          if (colPos[lastValueIndex] !== "%") {
+            err("Text position must be a percentage:" + colPos);
+            continue;
+          }
+          if (parseInt(colPos, 10) > 100) {
             err("Size cannot be >100%.");
             continue;
           }
-          cue.textPosition = parseInt(value, 10);
+          cue.textPosition = parseInt(colPos, 10);
+          positionSet = true;
+          if (colAlign == "start" || colAlign == "end" || colAlign == "middle") {
+            cue.positionAlign = colAlign;
+            positionAlignSet = true;
+          }
           break;
 
         case ("size"): // size
@@ -603,6 +638,25 @@ var WebVTTCueTimingsAndSettingsParser = function(line, errorHandler) {
       }
     } // end for
 
+    // default positioning
+    if (!positionSet && cue.alignment != "middle") {
+      if (cue.alignment === "left" || cue.alignment === "start") {
+        cue.position = 0;
+      } else {
+        cue.position = 100;
+      }
+    }
+
+    // default positionAlign
+    if (!positionAlignSet && cue.alignment != "middle") {
+      if (cue.alignment === "left" || cue.alignment === "start") {
+        cue.positionAlign = "start";
+      } else {
+        cue.positionAlign = "end";
+      }
+    }
+
+    // check region
     if ((seen.indexOf("line") !== -1 || seen.indexOf("size") !== -1) && seen.indexOf("region") !== -1) {
       err("Ignoring region setting.");
       cue.region = "";

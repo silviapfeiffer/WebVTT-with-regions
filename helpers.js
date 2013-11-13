@@ -99,3 +99,7 @@ var printTimestamp = function (timestamp) {
   result += components.secondsFrac;
   return result;
 };
+
+if (typeof module !== "undefined") {
+  module.exports.printTimestamp = printTimestamp;
+}

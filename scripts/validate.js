@@ -2,7 +2,7 @@
 // params: -v for verbose
 "use strict";
 var fs = require('fs');
-var ps = require('./parser.js');
+var ps = require('../parser.js');
 
 // verbose?
 var verbose = false;
@@ -32,6 +32,9 @@ function validate(data, file) {
     }
     if (content !== JSON.stringify(parsedData.errors)) {
       console.log("Parse error for file " + file + ".vtt");
+      if (verbose) {
+        console.log(parsedData.errors);
+      }
     } else {
       if (verbose) {
         console.log("Success parsing " + dir+file+".vtt");

@@ -2,6 +2,10 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 "use strict";
+if (typeof module !== "undefined") {
+ var helpers = require("./helpers.js");
+ var printTimestamp = helpers.printTimestamp;
+}
 
 var WebVTTSerializer = function() {
   var that = this,
@@ -56,12 +60,19 @@ var WebVTTSerializer = function() {
       if (cue.snapToLines === false) {
         result += "%";
       }
+      if (cue.lineAlign !== "") {
+        result += "," + cue.lineAlign;
+      }
       result += " ";
     }
 
     // text position
-    if (cue.textPosition !== 50) {
-      result += "position:" + cue.textPosition + "% ";
+    if (cue.textPosition) {
+      result += "position:" + cue.textPosition + "%";
+      if (cue.positionAlign && cue.positionAlign !== "") {
+        result += "," + cue.positionAlign;
+      }
+      result += " ";
     }
 
     // size
@@ -89,7 +100,7 @@ var WebVTTSerializer = function() {
     }
     result += printTimestamp(cue.startTime) + " --> " + printTimestamp(cue.endTime);
     result += " " + serializeCueSettings(cue) + "\n";
-    result += serializeTree(cue.tree.children) + "\n\n";
+    result += serializeTree(cue.tree.children) + "\n";
 
     return result;
   },
@@ -122,9 +133,9 @@ var WebVTTSerializer = function() {
         result += metadatas[i].name + ":" + metadatas[i].value + "\n";
       }
     }
-    result += "\n";
 
     for(i=0; i<cueLength; i++) {
+      result += "\n";
       result += serializeCue(cues[i]);
     }
     return result;
@@ -132,3 +143,7 @@ var WebVTTSerializer = function() {
   
   return that;
 };
+
+if (typeof module !== "undefined") {
+  module.exports.WebVTTSerializer = WebVTTSerializer;
+}

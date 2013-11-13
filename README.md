@@ -22,7 +22,13 @@ Load player.html in your browser.
 ## Running the test suite
 
 ```
-node ./validate.js -v
+node ./scripts/validate.js -v
+```
+
+## Test parsing a single file
+
+```
+node ./scripts/parse.js file.vtt
 ```
 
 ## Known bugs
