@@ -8,13 +8,20 @@
 function WebVTTParser() {
   var that = this;
 
+  // input: WebVTT file content as string
+  // mode: the @kind value
   that.parse = function(input, mode) {
     //XXX need global search and replace for \0
+
+    // Deal with all newlines the same way
     var NEWLINE = /\r\n|\r|\n/,
-    startTime = Date.now(),
-    linePos = 0,
-    lines = input.split(NEWLINE),
-    alreadyCollected = false,
+    lines = input.split(NEWLINE);
+
+    // This parser progresses through the file line by line
+    // instead of char by char as the spec defines
+    var linePos = 0;
+
+    var startTime = Date.now(),
     cues = [],
     metadatas = [],
     errors = [],
@@ -27,11 +34,11 @@ function WebVTTParser() {
     };
 
     var line = lines[linePos],
+    alreadyCollected = false,
     lineLength = line.length,
     signature = "WEBVTT",
     bom = 0,
     signature_length = signature.length;
-
 
     /* Byte order mark */
     if (line[0] === "\ufeff") {
@@ -49,6 +56,7 @@ function WebVTTParser() {
       err("No valid signature. (File needs to start with \"WEBVTT\".)");
     }
 
+    // ignore everything after the signature
     line = lines[++linePos];
 
     /* HEADER LOOP */
