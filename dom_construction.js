@@ -298,7 +298,7 @@ var WebVTT2DocumentFragment = function() {
     var width = regionAttributes.width * videoWidth / 100.0;
     cssRegion += " width:" + width + "px;";
 
-    var height = regionAttributes.height * lineHeight;
+    var height = regionAttributes.lines * lineHeight;
     cssRegion += " max-height:" + height + "px;";
     cssRegion += " min-height:0px;";
 

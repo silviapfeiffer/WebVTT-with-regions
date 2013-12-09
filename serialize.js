@@ -111,7 +111,7 @@ var WebVTTSerializer = function() {
       result += " id=" + attributes.id;
     }
     result += " width=" + attributes.width + "%";
-    result += " height=" + attributes.height;
+    result += " lines=" + attributes.lines;
     result += " regionanchor=" + attributes.regionanchorX + "%," + attributes.regionanchorY + "%";
     result += " viewportanchor=" + attributes.viewportanchorX + "%," + attributes.viewportanchorY + "%";
     if (attributes.scroll) {

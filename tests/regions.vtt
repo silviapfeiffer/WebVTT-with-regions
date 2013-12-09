@@ -1,0 +1,19 @@
+WEBVTT
+Kind: captions
+Language: en-US
+Region: id=fred width=80% lines=3 viewportanchor=10%,90% regionanchor=0%,100% scroll=up
+Region: id=bill width=50% lines=4 viewportanchor=50%,50% regionanchor=50%,50%
+
+00:00:05.940 --> 00:00:10.610 line:25%
+WHEN I GET A SICK BIRD,
+
+00:00:07.040 --> 00:00:11.700 region:fred
+THAT JUST <b>STOPS</b> EVERYTHING
+
+1
+00:00:09.410 --> 00:00:12.910 region:bill position:20%
+FROM MOVING FROM MY PLACE
+
+00:00:10.610 --> 00:00:14.100 size:50%
+TO ANYWHERE 
+ELSE OR BEYOND

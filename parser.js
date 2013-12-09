@@ -255,7 +255,7 @@ var WebVTTMetadataParser = function(errorHandler) {
     var regionAttributes = {
       id:"",
       width:100, /* % */
-      height:3,
+      lines:3,
       regionanchorX:0, /* % */
       regionanchorY:100, /* % */
       viewportanchorX:0, /* % */
@@ -304,12 +304,12 @@ var WebVTTMetadataParser = function(errorHandler) {
           }
           break;
 
-        case ("height"): // height
+        case ("lines"): // lines
           if (attributeValue[lastValueIndex] === "%") {
-            err("Region height cannot be a percentage.");
+            err("Region height in lines cannot be a percentage.");
             continue;
           }
-          regionAttributes.height = parseInt(attributeValue, 10);
+          regionAttributes.lines = parseInt(attributeValue, 10);
           break;
 
         case ("regionanchor"): // regionanchor
