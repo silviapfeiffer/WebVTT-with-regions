@@ -405,7 +405,7 @@ var WebVTT2DocumentFragment = function() {
       cssCueText += " left:" + left + "px;";
     }
 
-    // get number of lines in cue to calculate height
+    // get number of lines in cue to calculate height in pixels
     var cueHeight = getTextHeight(cueText, parent, cssCueText);
 //    var lines = cueHeight/12;
 //    cssCueText += " height:" + lines * lineHeight + "px;";
