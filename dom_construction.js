@@ -283,7 +283,6 @@ var WebVTT2DocumentFragment = function() {
     cssRegion = "position:absolute;";
     cssRegion += " unicode-bidi:-webkit-plaintext; unicode-bidi:-moz-plaintext; unicode-bidi:plaintext;";
     cssRegion += " direction:ltr;";
-    cssRegion += " background:rgba(0,0,0,0.8);";
     cssRegion += " word-wrap:break-word; overflow-wrap:break-word;";
     cssRegion += " font: " + fontSize + "px sans-serif;";
     cssRegion += " line-height:" + lineHeight + "px;";
@@ -298,24 +297,29 @@ var WebVTT2DocumentFragment = function() {
     var width = regionAttributes.width * videoWidth / 100.0;
     cssRegion += " width:" + width + "px;";
 
-    var height = regionAttributes.lines * lineHeight;
-    cssRegion += " max-height:" + height + "px;";
+    var height = regionAttributes.lines * Math.floor(lineHeight);
+    cssRegion += " height:" + height + "px;";
     cssRegion += " min-height:0px;";
 
-    // calculate left and top positioning of region
+    // calculate left and bottom positioning of region
     var left = regionAttributes.viewportanchorX * videoWidth / 100.0 - regionAttributes.regionanchorX  * width / 100.0;
     cssRegion += " left:" + left + "px;";
     var top = regionAttributes.viewportanchorY * videoHeight / 100.0 - regionAttributes.regionanchorY  * height / 100.0;
-    cssRegion += " top:" + top + "px;";
-
-    // make it the flex container
-    cssRegion += " display: -webkit-inline-flex;";
-    cssRegion += " -webkit-flex-flow:column; -webkit-justify-content: flex-end;";
+    var bottom = videoHeight - height - top;
+    cssRegion += " bottom:" + bottom + "px;";
 
     // set the CSS on the domFragment
     domFragment.setAttribute("style", cssRegion);
     domFragment.setAttribute("id", "region_" + regionAttributes.id);
 
+    var domContainer = document.createElement("div");
+    domContainer.style.position = 'absolute';
+    domContainer.style.height = 'auto';
+    domContainer.style.bottom = 0;
+    domContainer.style.width = '100%';
+    domContainer.style.backgroundColor = 'rgba(0,0,0,0.8)';
+    domContainer.style.webkitTransition = "0.443s";
+    domFragment.appendChild(domContainer);
     return {
       id: regionAttributes.id,
       element: domFragment,
@@ -328,7 +332,7 @@ var WebVTT2DocumentFragment = function() {
     var nodes = parent.childNodes;
     for(i=0; i<nodes.length; i++) {
       if (nodes[i].id === "region_" + regionId) {
-        return nodes[i];
+        return nodes[i].firstChild;
       }
     }
     return;
@@ -363,15 +367,6 @@ var WebVTT2DocumentFragment = function() {
     regionAttributes = region.attributes;
     domFragment = getRegionDom(cue.region, parent);
     cssRegion = domFragment.getAttribute("style");
-
-    // add a transition to the region if it's scroll and not the first cue
-    if (domFragment.children.length === 1) {
-      var scroll = regionAttributes.scroll;
-      if (scroll === 'up') {
-        cssRegion += " -webkit-transition-property: top;";
-        cssRegion += " -webkit-transition-duration: 0.433s;";
-      }
-    }
 
     /* set defaults */
     lineHeight = 0.0533 * videoHeight;
@@ -412,14 +407,13 @@ var WebVTT2DocumentFragment = function() {
 
     cueText.setAttribute("style", cssCueText);
 
-    // adjust top position of region from height of region
+    // adjust height of region to transition
     var regionHeight = getTextHeight(domFragment, parent, cssRegion);
     regionHeight += cueHeight;
-    top = regionAttributes.viewportanchorY * videoHeight / 100.0 - regionAttributes.regionanchorY  * regionHeight / 100.0;
-    cssRegion += " top:" + top + "px;";
 
     // reset the CSS on the domFragment
     domFragment.setAttribute("style", cssRegion);
+    domFragment.style.height = regionHeight + "px";
 
     return {
       region: domFragment,
@@ -488,7 +482,15 @@ var WebVTT2DocumentFragment = function() {
   that.captionRemove = function(cue, number) {
     var cue, element;
     element = document.getElementById(number+"_"+cue.startTime.toFixed(2));
-    element.parentNode.removeChild(element);
+    var parent = element.parentNode;
+    if (cue.region) {
+      parent.style.height = 'auto';
+      parent.removeChild(element);
+      var regionHeight = parent.getBoundingClientRect().height;
+      parent.style.height = regionHeight + 'px';
+    } else {
+      parent.removeChild(element);
+    }
   };
 
   return that;
